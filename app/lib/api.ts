@@ -1,12 +1,13 @@
 import axios from "axios";
 
 export type Role = "organization_admin" | "employee" | "finance" | "manager";
+export type UserRole = Role | "platform_admin";
 
 export type User = {
   id: number;
   name: string;
   email: string;
-  role: Role;
+  role: UserRole;
 };
 
 export type AuthResponse = {
@@ -19,6 +20,16 @@ export type Organization = {
   name: string;
   created_by: number;
   created_at: string;
+  role?: Role;
+};
+
+export type OrganizationMember = {
+  id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: Role;
 };
 
 export type Invitation = {
