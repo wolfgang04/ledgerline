@@ -34,6 +34,8 @@ export type OrganizationMember = {
 
 export type Invitation = {
   id: number;
+  organization_id: number;
+  organization_name: string;
   email: string;
   role: Role;
   created_at: string;
