@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Alert } from "../../components/ui/alert";
-import { OrganizationDashboard } from "../../components/organization-dashboard";
+import { OrganizationDashboard } from "../../components/organization/admin/organization-dashboard";
 import { useRouter, useParams } from "next/navigation";
 import type { User } from "../../lib/api";
 

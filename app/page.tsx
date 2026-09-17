@@ -6,6 +6,8 @@ import { Dashboard } from "./components/dashboard";
 import { LoginPage } from "./components/login-page";
 import { PlatformDashboard } from "./components/platform-dashboard";
 import type { User } from "./lib/api";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import Navbar from "./components/navbar";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(() => {
@@ -37,16 +39,21 @@ export default function Home() {
 
   return (
     <main className="shell dashboard-shell">
-      {user.role === "platform_admin" ? (
-        <PlatformDashboard user={user} onSignOut={signOut} />
-      ) : (
-        <Dashboard user={user} onSignOut={signOut} onNotice={setNotice} />
-      )}
-      {notice && (
-        <Alert variant={notice.type === "error" ? "destructive" : "default"}>
-          {notice.text}
-        </Alert>
-      )}
+      <SidebarProvider>
+        {/* <Navbar /> */}
+        {/* <SidebarTrigger /> */}
+
+        {user.role === "platform_admin" ? (
+          <PlatformDashboard user={user} onSignOut={signOut} />
+        ) : (
+          <Dashboard user={user} onSignOut={signOut} onNotice={setNotice} />
+        )}
+        {notice && (
+          <Alert variant={notice.type === "error" ? "destructive" : "default"}>
+            {notice.text}
+          </Alert>
+        )}
+      </SidebarProvider>
     </main>
   );
 }

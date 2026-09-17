@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   api,
   type Invitation,
+  type Department,
   type Organization,
   type OrganizationMember,
   type Role,
@@ -21,6 +22,8 @@ export const organizationKeys = {
   all: ["organizations"] as const,
   members: (organizationId: number) =>
     ["organizations", organizationId, "members"] as const,
+  structure: (organizationId: number) =>
+    ["organizations", organizationId, "structure"] as const,
   invitations: ["organizations", "invitations"] as const,
 };
 
@@ -35,6 +38,69 @@ async function listOrganizationMembers(organizationId: number) {
       `/organizations/${organizationId}/members`,
     )
   ).data;
+}
+
+async function listOrganizationStructure(organizationId: number) {
+  return (
+    await api.get<{ departments: Department[] }>(
+      `/organizations/${organizationId}/structure`,
+    )
+  ).data;
+}
+
+async function createDepartment(organizationId: number, name: string) {
+  return (
+    await api.post<{ department: Department }>(
+      `/organizations/${organizationId}/departments`,
+      { name },
+    )
+  ).data;
+}
+
+async function createTeam(
+  organizationId: number,
+  departmentId: number,
+  name: string,
+) {
+  return (
+    await api.post(
+      `/organizations/${organizationId}/departments/${departmentId}/teams`,
+      { name },
+    )
+  ).data;
+}
+
+async function setMemberDepartment(
+  organizationId: number,
+  userId: number,
+  departmentId: number | null,
+) {
+  return api.patch(
+    `/organizations/${organizationId}/members/${userId}/department`,
+    {
+      department_id: departmentId,
+    },
+  );
+}
+
+async function addTeamMember(
+  organizationId: number,
+  teamId: number,
+  userId: number,
+) {
+  return api.post(`/organizations/${organizationId}/teams/${teamId}/members`, {
+    user_id: userId,
+  });
+}
+
+async function removeTeamMember(
+  organizationId: number,
+  teamId: number,
+  userId: number,
+) {
+  return api.delete(
+    `/organizations/${organizationId}/teams/${teamId}/members/${userId}`,
+  );
 }
 
 async function createOrganization(name: string) {
@@ -90,6 +156,99 @@ export function useOrganizationMembersQuery(organizationId: number | null) {
       : ["organizations", "members", "none"],
     queryFn: () => listOrganizationMembers(organizationId as number),
     enabled: organizationId !== null,
+  });
+}
+
+export function useOrganizationStructureQuery(organizationId: number | null) {
+  return useQuery({
+    queryKey: organizationId
+      ? organizationKeys.structure(organizationId)
+      : ["organizations", "structure", "none"],
+    queryFn: () => listOrganizationStructure(organizationId as number),
+    enabled: organizationId !== null,
+  });
+}
+
+export function useCreateDepartmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      organizationId,
+      name,
+    }: {
+      organizationId: number;
+      name: string;
+    }) => createDepartment(organizationId, name),
+    onSuccess: (_, variables) =>
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.structure(variables.organizationId),
+      }),
+  });
+}
+
+export function useCreateTeamMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      organizationId,
+      departmentId,
+      name,
+    }: {
+      organizationId: number;
+      departmentId: number;
+      name: string;
+    }) => createTeam(organizationId, departmentId, name),
+    onSuccess: (_, variables) =>
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.structure(variables.organizationId),
+      }),
+  });
+}
+
+export function useSetMemberDepartmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      organizationId,
+      userId,
+      departmentId,
+    }: {
+      organizationId: number;
+      userId: number;
+      departmentId: number | null;
+    }) => setMemberDepartment(organizationId, userId, departmentId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.structure(variables.organizationId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.members(variables.organizationId),
+      });
+    },
+  });
+}
+
+export function useTeamMemberMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      organizationId,
+      teamId,
+      userId,
+      remove,
+    }: {
+      organizationId: number;
+      teamId: number;
+      userId: number;
+      remove?: boolean;
+    }) =>
+      remove
+        ? removeTeamMember(organizationId, teamId, userId)
+        : addTeamMember(organizationId, teamId, userId),
+    onSuccess: (_, variables) =>
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.structure(variables.organizationId),
+      }),
   });
 }
 
