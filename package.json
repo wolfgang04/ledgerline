@@ -34,7 +34,13 @@
     "typescript": "^5"
   },
   "lint-staged": {
-    "app/**/*.{ts,tsx,css}": ["prettier --write", "eslint"]
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,json,md}": [
+      "prettier --write"
+    ]
   },
   "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
   "main": "index.js",

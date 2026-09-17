@@ -35,19 +35,32 @@ export type PlatformUser = {
 };
 
 async function getPlatformOverview() {
-  return (await api.get<{ metrics: PlatformMetrics }>("/platform/overview")).data;
+  return (await api.get<{ metrics: PlatformMetrics }>("/platform/overview"))
+    .data;
 }
 
 async function searchUsers(query: string) {
-  return (await api.get<{ users: PlatformUser[] }>("/platform/users", { params: { q: query } })).data;
+  return (
+    await api.get<{ users: PlatformUser[] }>("/platform/users", {
+      params: { q: query },
+    })
+  ).data;
 }
 
 async function searchOrganizations(query: string) {
-  return (await api.get<{ organizations: Organization[] }>("/platform/organizations", { params: { q: query } })).data;
+  return (
+    await api.get<{ organizations: Organization[] }>(
+      "/platform/organizations",
+      { params: { q: query } },
+    )
+  ).data;
 }
 
 export function usePlatformOverviewQuery() {
-  return useQuery({ queryKey: ["platform", "overview"], queryFn: getPlatformOverview });
+  return useQuery({
+    queryKey: ["platform", "overview"],
+    queryFn: getPlatformOverview,
+  });
 }
 
 export function usePlatformUsersQuery(query: string) {

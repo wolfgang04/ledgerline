@@ -13,7 +13,10 @@ export default function Home() {
     const savedUser = window.localStorage.getItem("financial-operations-user");
     return savedUser ? (JSON.parse(savedUser) as User) : null;
   });
-  const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   function signOut() {
     window.localStorage.removeItem("financial-operations-token");
@@ -23,11 +26,27 @@ export default function Home() {
   }
 
   if (!user) {
-    return <LoginPage onAuthenticated={setUser} notice={notice} onNotice={setNotice} />;
+    return (
+      <LoginPage
+        onAuthenticated={setUser}
+        notice={notice}
+        onNotice={setNotice}
+      />
+    );
   }
 
-  return <main className="shell dashboard-shell">
-    {user.role === "platform_admin" ? <PlatformDashboard user={user} onSignOut={signOut} /> : <Dashboard user={user} onSignOut={signOut} onNotice={setNotice} />}
-    {notice && <Alert variant={notice.type === "error" ? "destructive" : "default"}>{notice.text}</Alert>}
-  </main>;
+  return (
+    <main className="shell dashboard-shell">
+      {user.role === "platform_admin" ? (
+        <PlatformDashboard user={user} onSignOut={signOut} />
+      ) : (
+        <Dashboard user={user} onSignOut={signOut} onNotice={setNotice} />
+      )}
+      {notice && (
+        <Alert variant={notice.type === "error" ? "destructive" : "default"}>
+          {notice.text}
+        </Alert>
+      )}
+    </main>
+  );
 }
