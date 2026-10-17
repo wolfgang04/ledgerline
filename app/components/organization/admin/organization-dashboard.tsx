@@ -19,7 +19,7 @@ import { OrganizationAccessNotice } from "./organization-access-notice";
 import { OrganizationMetrics } from "./organization-metrics";
 import { OrganizationPageHeader } from "./organization-page-header";
 import { OrganizationSidebar } from "./organization-sidebar";
-import { OrganizationStructurePanel } from "./organization-structure-panel";
+import { OrganizationStructurePanel } from "./organization-structure/organization-structure-panel";
 import { OrganizationToolbar } from "./organization-toolbar";
 import { OrganizationWorkspaceTabs } from "./organization-workspace-tabs";
 
@@ -136,7 +136,14 @@ export function OrganizationDashboard({
                 onRoleChange={updateRole}
               />
             }
-            structure={<OrganizationStructurePanel />}
+            structure={
+              <OrganizationStructurePanel
+                organizationId={organizationId}
+                canManageAccess={canManageAccess}
+                members={members}
+                onNotice={onNotice}
+              />
+            }
           />
         </div>
         <footer className="dashboard-footer">

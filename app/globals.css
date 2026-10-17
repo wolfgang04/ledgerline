@@ -366,6 +366,15 @@ button {
   background: #f8e4dc;
   border-color: var(--orange);
 }
+.organization-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
+  min-width: 260px;
+  max-width: min(420px, calc(100vw - 32px));
+  box-shadow: 0 10px 30px rgba(18, 54, 58, 0.16);
+}
 .workspace {
   flex: 1;
   padding: 48px 0 30px;

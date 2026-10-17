@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert } from "../../components/ui/alert";
 import { OrganizationDashboard } from "../../components/organization/admin/organization-dashboard";
 import { useRouter, useParams } from "next/navigation";
@@ -18,6 +18,12 @@ export default function OrganizationPage() {
     const savedUser = window.localStorage.getItem("financial-operations-user");
     return savedUser ? (JSON.parse(savedUser) as User) : null;
   });
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(null), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   function signOut() {
     window.localStorage.removeItem("financial-operations-token");
@@ -39,7 +45,12 @@ export default function OrganizationPage() {
         onNotice={setNotice}
       />
       {notice && (
-        <Alert variant={notice.type === "error" ? "destructive" : "default"}>
+        <Alert
+          role="status"
+          aria-live="polite"
+          className="organization-toast"
+          variant={notice.type === "error" ? "destructive" : "default"}
+        >
           {notice.text}
         </Alert>
       )}

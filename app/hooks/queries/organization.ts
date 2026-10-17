@@ -70,6 +70,12 @@ async function createTeam(
   ).data;
 }
 
+async function deleteDepartment(organizationId: number, departmentId: number) {
+  return api.delete(
+    `/organizations/${organizationId}/departments/${departmentId}`,
+  );
+}
+
 async function setMemberDepartment(
   organizationId: number,
   userId: number,
@@ -198,6 +204,23 @@ export function useCreateTeamMutation() {
       departmentId: number;
       name: string;
     }) => createTeam(organizationId, departmentId, name),
+    onSuccess: (_, variables) =>
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.structure(variables.organizationId),
+      }),
+  });
+}
+
+export function useDeleteDepartmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      organizationId,
+      departmentId,
+    }: {
+      organizationId: number;
+      departmentId: number;
+    }) => deleteDepartment(organizationId, departmentId),
     onSuccess: (_, variables) =>
       queryClient.invalidateQueries({
         queryKey: organizationKeys.structure(variables.organizationId),

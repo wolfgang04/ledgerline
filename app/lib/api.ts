@@ -31,6 +31,7 @@ export type OrganizationMember = {
   email: string;
   role: Role;
   department_id?: number | null;
+  created_at: string;
 };
 
 export type TeamMember = Pick<
