@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"*.{ts,tsx,json,mjs}\""
+    "format": "prettier --write app components features lib \"*.{ts,json,mjs}\"",
+    "test": "node --experimental-strip-types --test lib/*.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -16,7 +18,6 @@
     "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "cn": "^0.3.0",
     "lucide-react": "^1.46.0",
     "next": "16.3.3",
     "react": "19.2.8",
@@ -47,9 +48,5 @@
       "prettier --write"
     ]
   },
-  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "description": "Multi-tenant financial operations workspace"
 }

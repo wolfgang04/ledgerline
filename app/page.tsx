@@ -1,59 +1,24 @@
 "use client";
-
-import { useState } from "react";
-import { Alert } from "./components/ui/alert";
-import { Dashboard } from "./components/dashboard";
-import { LoginPage } from "./components/login-page";
-import { PlatformDashboard } from "./components/platform-dashboard";
-import type { User } from "./lib/api";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import Navbar from "./components/navbar";
-
+import { useSession } from "@/features/auth/session-provider";
+import { LoginPage } from "@/features/auth/components/login-page";
+import { Dashboard } from "@/features/organizations/components/dashboard";
+import { PlatformDashboard } from "@/features/platform/components/platform-dashboard";
+import { NoticeMessage, useNotice } from "@/components/notice";
+import { QueryState } from "@/components/query-state";
 export default function Home() {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
-    const savedUser = window.localStorage.getItem("financial-operations-user");
-    return savedUser ? (JSON.parse(savedUser) as User) : null;
-  });
-  const [notice, setNotice] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-
-  function signOut() {
-    window.localStorage.removeItem("financial-operations-token");
-    window.localStorage.removeItem("financial-operations-user");
-    setUser(null);
-    setNotice({ type: "success", text: "Signed out." });
-  }
-
-  if (!user) {
-    return (
-      <LoginPage
-        onAuthenticated={setUser}
-        notice={notice}
-        onNotice={setNotice}
-      />
-    );
-  }
-
+  const { user, ready } = useSession();
+  const { notice, notify, dismiss } = useNotice();
+  if (!ready) return <QueryState loading />;
   return (
-    <main className="shell dashboard-shell">
-      <SidebarProvider>
-        {/* <Navbar /> */}
-        {/* <SidebarTrigger /> */}
-
-        {user.role === "platform_admin" ? (
-          <PlatformDashboard user={user} onSignOut={signOut} />
-        ) : (
-          <Dashboard user={user} onSignOut={signOut} onNotice={setNotice} />
-        )}
-        {notice && (
-          <Alert variant={notice.type === "error" ? "destructive" : "default"}>
-            {notice.text}
-          </Alert>
-        )}
-      </SidebarProvider>
-    </main>
+    <>
+      {!user ? (
+        <LoginPage onNotice={notify} />
+      ) : user.role === "platform_admin" ? (
+        <PlatformDashboard />
+      ) : (
+        <Dashboard onNotice={notify} />
+      )}
+      <NoticeMessage notice={notice} dismiss={dismiss} />
+    </>
   );
 }

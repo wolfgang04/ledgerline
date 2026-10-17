@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ledgerline Operations",
-  description: "Manage people, organizations, invitations, and access roles.",
+  title: "Ledgerline | Financial operations",
+  description:
+    "Bring your people and workspaces together. Financial operations with a clearer direction.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
