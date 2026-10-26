@@ -6,6 +6,7 @@ export type Organization = {
   created_by: number;
   created_at: string;
   role?: Role;
+  department_id?: number | null;
 };
 
 export type OrganizationMember = {

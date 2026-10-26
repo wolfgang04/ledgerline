@@ -21,3 +21,5 @@ Use Geist with system fallbacks. Page headings use tight tracking and semibold w
 Compose shadcn primitives from `components/ui`. Keep custom components for domain concepts. Use one primary action per section, outlined secondary actions, and destructive styling only for destructive operations. Use explicit pending labels, preserve values on failure, and explain empty states with a next step. Never invent financial figures or show controls for unavailable features.
 
 The geometric mark represents a ledger corner and its next entry. Reuse `LedgerlineMark` or `Brand`; the browser icon uses the same geometry. The current theme is light with navy navigation. Respect reduced motion and maintain visible keyboard focus. On mobile, collapse navigation into the accessible sheet.
+
+Geist and Geist Mono are self-hosted from `app/fonts` (Latin variable fonts, SIL OFL 1.1). They were copied from the installed Next.js distribution; attribution and license accompany them. No font download is required during builds.

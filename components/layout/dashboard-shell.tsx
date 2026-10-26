@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Building2,
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ShieldCheck,
   ArrowUpRight,
+  Wallet,
 } from "lucide-react";
 import { useSession } from "@/features/auth/session-provider";
 import { useOrganizationsQuery } from "@/features/organizations/queries";
@@ -46,6 +47,7 @@ export function DashboardShell({
 }: ShellProps) {
   const { user, signOut } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const platform = user?.role === "platform_admin" && !organizationId;
   const organizations = useOrganizationsQuery(!platform);
@@ -66,6 +68,17 @@ export function DashboardShell({
             label: "People & teams",
             icon: Building2,
           },
+          ...(membershipRole === "finance" ||
+          membershipRole === "organization_admin" ||
+          membershipRole === "manager"
+            ? [
+                {
+                  href: `/organizations/${organizationId}/budgets`,
+                  label: "Budgets",
+                  icon: Wallet,
+                },
+              ]
+            : []),
         ]
       : []),
   ];
@@ -129,7 +142,7 @@ export function DashboardShell({
           {platform ? "Administration" : "Your workspace"}
         </p>
         {links.map(({ href, label, icon: Icon }) => {
-          const active = organizationId ? href !== "/" : href === "/";
+          const active = pathname === href;
           const link = (
             <Link
               href={href}
