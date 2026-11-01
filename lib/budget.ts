@@ -20,7 +20,15 @@ export function proposalHistorySummary(
   audit: ProposalAuditEvent[],
   messages: ReviewMessage[] = [],
 ) {
-  const actions = new Set(["edited", "revision_started", "resubmitted"]);
+  const actions = new Set([
+    "edited",
+    "revision_started",
+    "resubmitted",
+    "approved",
+    "department_approved",
+    "spending_plan_updated",
+    "committed",
+  ]);
   const changes = [
     ...audit
       .filter((event) => actions.has(event.action))

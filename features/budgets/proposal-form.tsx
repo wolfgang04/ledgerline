@@ -4,17 +4,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
   allocationTotals,
   currencyLabel,
   formatFinancialAmount,
 } from "@/lib/budget";
-import type { Allocation, BudgetPlan, ProposalInput } from "./queries";
+import type {
+  Allocation,
+  BudgetDepartment,
+  BudgetPlan,
+  ProposalInput,
+} from "./queries";
 
 export function fiscalYearRange(year: number, month: number) {
   const date = (value: Date) =>
@@ -29,26 +28,25 @@ export function fiscalYearRange(year: number, month: number) {
 
 export function ProposalForm({
   plan,
-  allocations,
+  allocations: initialAllocations,
+  departments = [],
   currency,
   month,
   pending,
-  blocked,
   onSave,
-  onSubmit,
   onCancel,
 }: {
   plan?: BudgetPlan;
   allocations: Allocation[];
+  departments?: BudgetDepartment[];
   currency: string;
   month: number;
   pending: boolean;
-  blocked?: boolean;
   onSave: (values: ProposalInput, reason: string) => void;
-  onSubmit: (summary: string) => void;
   onCancel: () => void;
 }) {
   const today = new Date();
+  const [allocations, setAllocations] = useState(initialAllocations);
   const [year, setYear] = useState(
     plan?.fiscal_year ??
       today.getFullYear() - (today.getMonth() + 1 < month ? 1 : 0),
@@ -57,9 +55,6 @@ export function ProposalForm({
   const [amounts, setAmounts] = useState(
     allocations.map((allocation) => allocation.proposed_amount),
   );
-  const [dirty, setDirty] = useState(false);
-  const [confirm, setConfirm] = useState(false);
-  const autoSubmit = plan?.status === "revising";
   const digits = new Intl.NumberFormat("en", {
     style: "currency",
     currency,
@@ -84,11 +79,7 @@ export function ProposalForm({
   }
   return (
     <>
-      <form
-        onSubmit={save}
-        onChange={() => setDirty(true)}
-        className="space-y-4"
-      >
+      <form onSubmit={save} className="space-y-4">
         <fieldset disabled={pending} className="space-y-6">
           <legend className="mb-4 text-base font-semibold">
             Proposal details
@@ -163,7 +154,52 @@ export function ProposalForm({
             </p>
             {!allocations.length && (
               <p className="text-sm text-muted-foreground">
-                No departments yet. The annual total will remain in reserve.
+                No departments included. The annual total will remain in
+                reserve.
+              </p>
+            )}
+            {departments
+              .filter(
+                (department) =>
+                  department.eligible &&
+                  !allocations.some(
+                    (allocation) => allocation.department_id === department.id,
+                  ),
+              )
+              .map((department) => (
+                <Alert key={department.id} variant="warning">
+                  <p>
+                    <strong>{department.name}</strong> has a department manager
+                    but has no budget allocation.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={() => {
+                      setAllocations((previous) => [
+                        ...previous,
+                        {
+                          department_id: department.id,
+                          name: department.name,
+                          proposed_amount: "0.00",
+                        },
+                      ]);
+                      setAmounts((previous) => [...previous, "0.00"]);
+                    }}
+                  >
+                    Add {department.name} to proposal
+                  </Button>
+                </Alert>
+              ))}
+            {departments.some((department) => !department.eligible) && (
+              <p className="text-sm text-muted-foreground">
+                Departments without managers are excluded:{" "}
+                {departments
+                  .filter((department) => !department.eligible)
+                  .map((department) => department.name)
+                  .join(", ")}
+                .
               </p>
             )}
             {allocations.map((allocation, index) => (
@@ -171,9 +207,35 @@ export function ProposalForm({
                 key={allocation.department_id}
                 className="grid items-center gap-3 rounded-xl border p-3 sm:grid-cols-[minmax(0,1fr)_12rem_5rem]"
               >
-                <Label htmlFor={`allocation-${allocation.department_id}`}>
-                  {allocation.name}
-                </Label>
+                <div>
+                  <Label htmlFor={`allocation-${allocation.department_id}`}>
+                    {allocation.name}
+                  </Label>
+                  {departments.some(
+                    (department) =>
+                      department.id === allocation.department_id &&
+                      !department.eligible,
+                  ) && (
+                    <p className="text-sm text-destructive">
+                      No manager. Remove this department before submission.
+                    </p>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setAllocations((previous) =>
+                        previous.filter((_, i) => i !== index),
+                      );
+                      setAmounts((previous) =>
+                        previous.filter((_, i) => i !== index),
+                      );
+                    }}
+                    aria-label={`Remove ${allocation.name} from proposal`}
+                  >
+                    Remove
+                  </Button>
+                </div>
                 <Input
                   id={`allocation-${allocation.department_id}`}
                   aria-label={`${allocation.name} allocation in ${currency}`}
@@ -221,10 +283,8 @@ export function ProposalForm({
             </dl>
             {totals?.overallocated && (
               <Alert variant="destructive">
-                Allocations exceed the annual total.{" "}
-                {autoSubmit
-                  ? "Correct them before saving and submitting."
-                  : "You can save this draft, but must correct it before submission."}
+                Allocations exceed the annual total. You can save these working
+                values, but must correct them before submission.
               </Alert>
             )}
           </div>
@@ -246,98 +306,19 @@ export function ProposalForm({
             </div>
           )}
           <div className="flex flex-wrap gap-3 border-t pt-4">
-            <Button
-              type="submit"
-              variant={plan && !autoSubmit ? "outline" : "default"}
-              disabled={
-                autoSubmit && (!totals || totals.overallocated || blocked)
-              }
-            >
-              {pending
-                ? "Saving…"
-                : autoSubmit
-                  ? "Save and submit revision"
-                  : plan
-                    ? "Save changes"
-                    : "Save draft"}
+            <Button type="submit" variant="default">
+              {pending ? "Saving..." : plan ? "Save changes" : "Save draft"}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel}>
-              Close
+              Cancel editing
             </Button>
-            {plan && !autoSubmit && (
-              <Button
-                type="button"
-                disabled={dirty || blocked || !totals || totals.overallocated}
-                onClick={() => setConfirm(true)}
-              >
-                {plan.revision_number
-                  ? "Resubmit for review"
-                  : "Submit for review"}
-              </Button>
-            )}
           </div>
-          {autoSubmit && (
-            <p className="text-sm text-muted-foreground">
-              Saving changed values immediately creates a submitted version and
-              returns this proposal to review. Your change reason becomes the
-              revision summary.
-            </p>
-          )}
-          {dirty && plan && !autoSubmit && (
-            <p className="text-sm text-muted-foreground">
-              Save your changes before submitting. Changes to agreed values
-              require confirmation again.
-            </p>
-          )}
-          {blocked && (
-            <p className="text-sm text-muted-foreground">
-              Resubmission is unavailable while changes need requester agreement
-              or a newer proposal version needs reloading.
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            Saving does not submit the proposal. Use Submit or Resubmit for
+            review on the proposal screen after saving.
+          </p>
         </fieldset>
       </form>
-      <Dialog open={confirm} onOpenChange={setConfirm}>
-        <DialogContent>
-          <DialogTitle>
-            {plan?.revision_number
-              ? "Resubmit revised proposal?"
-              : "Submit annual proposal?"}
-          </DialogTitle>
-          <DialogDescription>
-            This creates an immutable submitted version for managers to review.
-            Finance can start a revision later without waiting for a review.
-          </DialogDescription>
-          <form
-            className="space-y-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const summary = String(
-                new FormData(event.currentTarget).get("summary"),
-              );
-              setConfirm(false);
-              onSubmit(summary);
-            }}
-          >
-            <Label htmlFor="revision-summary">
-              {plan?.revision_number
-                ? "Revision summary"
-                : "Submission summary"}
-            </Label>
-            <textarea
-              id="revision-summary"
-              name="summary"
-              required
-              maxLength={1000}
-              rows={3}
-              className="w-full rounded-lg border p-3"
-            />
-            <Button type="submit" disabled={pending}>
-              Confirm submission
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

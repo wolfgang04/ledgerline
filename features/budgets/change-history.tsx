@@ -26,6 +26,8 @@ const fieldLabels: Record<string, string> = {
   submitted_at: "Submission time",
   allocation: "Allocation",
   department_name: "Department name",
+  department_approval: "Department approval",
+  spending_plan: "Annual spending plan",
 };
 
 export function ChangeHistory({
@@ -45,6 +47,10 @@ export function ChangeHistory({
     resubmitted: "resubmitted the proposal",
     revision_requested: "requested a revision",
     revision_agreed: "agreed to the requested revision",
+    approved: "approved the whole proposal",
+    department_approved: "approved the department allocation",
+    spending_plan_updated: "updated the department spending plan",
+    committed: "committed the approved department budgets",
   };
   const fields =
     latest?.action === "edited"

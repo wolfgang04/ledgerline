@@ -40,7 +40,24 @@ export type Allocation = {
   department_id: number;
   name: string;
   proposed_amount: string;
+  spending_plan?: DepartmentSpendingPlan;
 };
+export type SpendingLine = { category: string; amount: string };
+export type SpendingPlanInput = {
+  revision_number: number;
+  version: number;
+  lines: SpendingLine[];
+};
+export type DepartmentSpendingPlan = {
+  department_id: number;
+  name: string;
+  allocated_amount: string;
+  version: number;
+  lines: SpendingLine[];
+  planned_amount: string;
+  unplanned_amount: string;
+};
+export type BudgetDepartment = { id: number; name: string; eligible: boolean };
 export type ProposalSnapshot = {
   name: string;
   description: string | null;
@@ -66,6 +83,23 @@ export type ReviewMessage = {
   agreement_snapshot: ProposalSnapshot | null;
 };
 export type ProposalDetail = {
+  spending_plans: DepartmentSpendingPlan[];
+  departments: BudgetDepartment[];
+  approval_stage: string;
+  approvers: {
+    user_id: number;
+    name: string;
+    department_id: number | null;
+    department_name: string | null;
+    approved_at: string | null;
+  }[];
+  committed_budget: {
+    id: number;
+    status: string;
+    approved_at: string | null;
+    revision_number: number | null;
+    snapshot: ProposalSnapshot | null;
+  } | null;
   audit: ProposalAuditEvent[];
   plan: BudgetPlan;
   working: ProposalSnapshot;
@@ -99,6 +133,18 @@ export type ProposalAuditEvent = {
 };
 
 const budgetKey = (id: number) => ["organizations", id, "budgets"];
+export function useBudgetDepartments(id: number) {
+  return useQuery({
+    queryKey: [...budgetKey(id), "departments"],
+    queryFn: async ({ signal }) =>
+      (
+        await api.get<{ departments: BudgetDepartment[] }>(
+          `/organizations/${id}/budget-departments`,
+          { signal },
+        )
+      ).data,
+  });
+}
 export function useFinancialSettings(id: number, enabled: boolean) {
   return useQuery({
     queryKey: [...budgetKey(id), "settings"],
@@ -164,6 +210,14 @@ export function useBudgetConversation(
 
 type BudgetAction =
   | {
+      kind: "save-spending-plan";
+      planId: number;
+      departmentId: number;
+      values: SpendingPlanInput;
+    }
+  | { kind: "approve"; planId: number; updated_at: string }
+  | { kind: "commit"; planId: number; updated_at: string }
+  | {
       kind: "settings";
       settings: Pick<FinancialSettings, "currency" | "fiscal_year_start_month">;
     }
@@ -200,6 +254,13 @@ export function useBudgetMutation(id: number) {
   return useMutation({
     mutationFn: async (action: BudgetAction) => {
       const base = `/organizations/${id}`;
+      if (action.kind === "save-spending-plan") {
+        await api.put(
+          `${base}/budget-plans/${action.planId}/departments/${action.departmentId}/spending-plan`,
+          action.values,
+        );
+        return;
+      }
       if (action.kind === "settings") {
         await api.patch(`${base}/financial-settings`, action.settings);
         return;
@@ -211,6 +272,13 @@ export function useBudgetMutation(id: number) {
         );
         return;
       }
+      if (action.kind === "approve" || action.kind === "commit")
+        return (
+          await api.post<{ plan: BudgetPlan }>(
+            `${base}/budget-plans/${action.planId}/${action.kind}`,
+            { updated_at: action.updated_at },
+          )
+        ).data.plan;
       if (action.kind === "start-revision")
         return (
           await api.post<{ plan: BudgetPlan }>(

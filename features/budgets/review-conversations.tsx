@@ -435,60 +435,10 @@ export function ReviewConversations({
                       {currentRound
                         ? message.agreed
                           ? "Agreed on current values"
-                          : "Awaiting agreement on current values"
+                          : "Finance can address this in a new submission"
                         : "Previous review round"}
                     </p>
                   )}
-                  {message.kind === "request_changes" &&
-                    canPost &&
-                    manager &&
-                    message.created_by === userId &&
-                    !message.agreed &&
-                    detail.plan.status === "changes_requested" && (
-                      <div className="space-y-3 rounded-lg border bg-card p-3">
-                        <p className="text-xs font-medium">
-                          Current saved values for this agreement
-                        </p>
-                        <AllocationSummary
-                          snapshot={
-                            departmentId === null
-                              ? detail.working
-                              : {
-                                  ...detail.working,
-                                  description: null,
-                                  proposed_amount: null,
-                                  reserve: null,
-                                  allocations:
-                                    detail.working.allocations.filter(
-                                      (allocation) =>
-                                        allocation.department_id ===
-                                        departmentId,
-                                    ),
-                                }
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-auto whitespace-normal text-left"
-                          disabled={pending}
-                          onClick={() =>
-                            void onMessage({
-                              revision_number: detail.plan.revision_number,
-                              department_id: departmentId,
-                              kind: "agreement",
-                              request_id: message.id,
-                              message:
-                                "I agree to the current saved values for this scope.",
-                              updated_at: detail.plan.updated_at,
-                            }).catch(() => {})
-                          }
-                        >
-                          Confirm agreement on saved working values
-                        </Button>
-                      </div>
-                    )}
                   <time
                     className="block text-[11px] text-muted-foreground"
                     dateTime={message.created_at}
