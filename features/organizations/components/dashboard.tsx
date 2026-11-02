@@ -1,17 +1,11 @@
 "use client";
 import Link from "next/link";
 import type { FormEvent } from "react";
-import {
-  ArrowUpRight,
-  Building2,
-  Mail,
-  Plus,
-  ShieldCheck,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowUpRight, Building2, ChevronRight } from "lucide-react";
 import { Metrics } from "@/components/metrics";
 import { PageHeading } from "@/components/page-heading";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { organizationHref } from "../navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,21 +52,18 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
   return (
     <DashboardShell title="Overview">
       <PageHeading
-        eyebrow="Your financial workspace"
-        title="A little clarity goes a long way."
-        description="Bring the right people together. Choose a workspace, respond to an invitation, or start something new."
+        title="Your workspaces"
+        description="Open an organization to review budgets, manage your team, or continue your work."
       />
       <Metrics
         items={[
           {
             label: "Your organizations",
             value: organizations.data?.organizations.length ?? "--",
-            icon: Building2,
           },
           {
             label: "Pending invitations",
             value: invitations.data?.invitations.length ?? "--",
-            icon: Mail,
           },
           {
             label: "Workspaces you manage",
@@ -80,7 +71,6 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
               organizations.data?.organizations.filter(
                 (item) => item.role === "organization_admin",
               ).length ?? "--",
-            icon: ShieldCheck,
           },
         ]}
       />
@@ -89,7 +79,7 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
           <CardHeader>
             <CardTitle>Your organizations</CardTitle>
             <CardDescription>
-              A home for each team and its work.
+              Your membership and access in each organization.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -106,12 +96,13 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
                 {organizations.data?.organizations.map((organization) => (
                   <Link
                     key={organization.id}
-                    href={`/organizations/${organization.id}`}
-                    className="group flex flex-wrap items-center gap-3 rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-primary"
+                    href={organizationHref(organization)}
+                    className="group flex flex-wrap items-center gap-3 border-b py-4 transition-colors last:border-0 hover:text-primary"
                   >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-primary">
-                      <Building2 className="size-5" />
-                    </span>
+                    <Building2
+                      className="size-5 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
                     <span className="min-w-32 flex-1 break-words font-medium">
                       {organization.name}
                     </span>
@@ -125,11 +116,8 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
             </QueryState>
           </CardContent>
         </Card>
-        <Card className="border-primary/20 bg-accent/40">
+        <Card>
           <CardHeader>
-            <span className="mb-3 grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
-              <Plus className="size-5" />
-            </span>
             <CardTitle>Start a workspace</CardTitle>
             <CardDescription>
               You become its initial administrator.

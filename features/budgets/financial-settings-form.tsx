@@ -9,7 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CurrencyCombobox } from "./currency-combobox";
-import type { FinancialSettings } from "./queries";
+import type { FinancialSettings } from "./types";
 
 const months = Array.from({ length: 12 }, (_, index) => ({
   value: String(index + 1),

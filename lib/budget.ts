@@ -2,7 +2,7 @@ import type {
   ProposalAuditEvent,
   ReviewMessage,
   ProposalDetail,
-} from "../features/budgets/queries";
+} from "../features/budgets/types";
 
 export function latestProposalDetail(
   detail: ProposalDetail | undefined,

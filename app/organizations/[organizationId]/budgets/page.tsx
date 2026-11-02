@@ -5,6 +5,7 @@ import { useSession } from "@/features/auth/session-provider";
 import { BudgetDashboard } from "@/features/budgets/budget-dashboard";
 import { NoticeMessage, useNotice } from "@/components/notice";
 import { QueryState } from "@/components/query-state";
+import { UnsavedChangesProvider } from "@/components/unsaved-changes";
 
 export default function BudgetsPage() {
   const { user, ready } = useSession();
@@ -23,13 +24,13 @@ export default function BudgetsPage() {
     return <QueryState empty="Invalid organization." />;
 
   return (
-    <>
+    <UnsavedChangesProvider key={organizationId}>
       <BudgetDashboard
         key={organizationId}
         organizationId={organizationId}
         onNotice={notify}
       />
       <NoticeMessage notice={notice} dismiss={dismiss} />
-    </>
+    </UnsavedChangesProvider>
   );
 }

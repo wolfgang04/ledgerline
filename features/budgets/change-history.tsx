@@ -1,4 +1,4 @@
-import type { ProposalDetail, ProposalAuditEvent } from "./queries";
+import type { ProposalDetail, ProposalAuditEvent } from "./types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -78,7 +78,7 @@ export function ChangeHistory({
       className={
         edit
           ? "text-center"
-          : "flex flex-col gap-3 rounded-xl border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between"
+          : "flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between"
       }
       aria-label={edit ? "Proposal edit" : "Latest proposal change"}
     >

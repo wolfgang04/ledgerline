@@ -3,6 +3,11 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  useLeaveConfirmation,
+  useUnsavedEditor,
+} from "@/components/unsaved-changes";
 import {
   Table,
   TableBody,
@@ -13,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { getApiError } from "@/lib/api";
 import { allocationTotals, formatFinancialAmount } from "@/lib/budget";
-import type { DepartmentSpendingPlan, SpendingPlanInput } from "./queries";
+import type { DepartmentSpendingPlan, SpendingPlanInput } from "./types";
 
 export function DepartmentSpendingPlanPanel({
   plan,
@@ -39,6 +44,10 @@ export function DepartmentSpendingPlanPanel({
   const [version, setVersion] = useState(plan.version);
   const [editRevision, setEditRevision] = useState(revision);
   const [error, setError] = useState<string | null>(null);
+  const [savedLines, setSavedLines] = useState(JSON.stringify(plan.lines));
+  const dirty = editing && JSON.stringify(lines) !== savedLines;
+  const leave = useLeaveConfirmation();
+  useUnsavedEditor(dirty, editing && pending);
   const totals = allocationTotals(
     plan.allocated_amount,
     lines.map((line) => line.amount),
@@ -46,6 +55,7 @@ export function DepartmentSpendingPlanPanel({
   const stale = version !== plan.version || editRevision !== revision;
   function load() {
     setLines(plan.lines.map((line) => ({ ...line })));
+    setSavedLines(JSON.stringify(plan.lines));
     setVersion(plan.version);
     setEditRevision(revision);
     setError(null);
@@ -69,18 +79,32 @@ export function DepartmentSpendingPlanPanel({
   return (
     <section
       aria-label={`${plan.name} annual spending plan`}
-      className="space-y-3 rounded-xl border p-4"
+      className="space-y-4 rounded-xl border bg-card p-4 sm:p-6"
     >
-      <h4 className="font-semibold">{plan.name} spending plan</h4>
-      <p className="text-sm">
-        Department allocation: {formatFinancialAmount(plan.allocated_amount)}{" "}
-        {currency}
-      </p>
+      <div className="grid gap-3 border-b pb-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <h4 className="font-semibold">{plan.name} spending plan</h4>
+        <div className="sm:text-right">
+          <p className="text-lg font-semibold tracking-tight tabular-nums">
+            {formatFinancialAmount(plan.allocated_amount)}{" "}
+            <span className="text-xs font-medium text-muted-foreground">
+              {currency}
+            </span>
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Department allocation
+          </p>
+        </div>
+      </div>
       {editing ? (
         <form onSubmit={save} className="space-y-3">
           <fieldset disabled={pending} className="space-y-3">
             <legend className="text-sm font-medium">
               Annual spending categories
+              {dirty && (
+                <Badge variant="warning" className="ml-3">
+                  Unsaved changes
+                </Badge>
+              )}
             </legend>
             {lines.map((line, index) => (
               <div
@@ -178,11 +202,19 @@ export function DepartmentSpendingPlanPanel({
                 {pending ? "Saving..." : "Save spending plan"}
               </Button>
               {stale && (
-                <Button type="button" variant="outline" onClick={load}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => leave.request(load)}
+                >
                   Reload saved spending plan
                 </Button>
               )}
-              <Button type="button" variant="outline" onClick={close}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => leave.request(close)}
+              >
                 Cancel spending edits
               </Button>
             </div>
@@ -224,16 +256,16 @@ export function DepartmentSpendingPlanPanel({
               No categories entered. The allocation is currently unplanned.
             </p>
           )}
-          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <dt>Total planned</dt>
-              <dd className="font-semibold tabular-nums">
+              <dd className="mt-1 font-semibold tabular-nums">
                 {formatFinancialAmount(plan.planned_amount)} {currency}
               </dd>
             </div>
             <div>
               <dt>Unplanned funds</dt>
-              <dd className="font-semibold tabular-nums">
+              <dd className="mt-1 font-semibold tabular-nums">
                 {formatFinancialAmount(plan.unplanned_amount)} {currency}
               </dd>
             </div>

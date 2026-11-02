@@ -1,41 +1,18 @@
-import type { LucideIcon } from "lucide-react";
-import { Building2, Users, ShieldCheck } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-const tones = [
-  "bg-accent text-primary",
-  "bg-info-soft text-info",
-  "bg-warning-soft text-warning",
-];
-const icons = [Users, Building2, ShieldCheck];
 export function Metrics({
   items,
 }: {
-  items: { label: string; value: number | string; icon?: LucideIcon }[];
+  items: { label: string; value: number | string }[];
 }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      {items.map(({ label, value, icon }, index) => {
-        const Icon = icon ?? icons[index % icons.length];
-        return (
-          <Card key={label}>
-            <CardContent className="flex items-center gap-4">
-              <span
-                className={`grid size-12 shrink-0 place-items-center rounded-xl ${tones[index % tones.length]}`}
-              >
-                <Icon className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  {label}
-                </p>
-                <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
-                  {value}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+    <dl className="flex flex-wrap gap-x-10 gap-y-4 border-y py-5 sm:gap-x-16">
+      {items.map(({ label, value }) => (
+        <div key={label} className="flex items-baseline gap-3">
+          <dd className="order-1 text-2xl font-semibold tracking-tight tabular-nums">
+            {value}
+          </dd>
+          <dt className="order-2 text-sm text-muted-foreground">{label}</dt>
+        </div>
+      ))}
+    </dl>
   );
 }

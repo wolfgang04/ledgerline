@@ -3,8 +3,8 @@ import {
   allocationTotals,
   formatFinancialAmount,
 } from "@/lib/budget";
-import type { ProposalSnapshot } from "./queries";
-import { fiscalYearRange } from "./proposal-form";
+import type { ProposalSnapshot } from "./types";
+import { fiscalYearRange } from "./fiscal-year";
 
 export function AllocationSummary({
   snapshot,
@@ -28,7 +28,7 @@ export function AllocationSummary({
           : `FY ${snapshot.fiscal_year}`}
       </p>
       {snapshot.proposed_amount !== null && (
-        <p className="rounded-xl bg-muted/50 p-4 text-xl font-semibold tabular-nums">
+        <p className="border-b py-4 text-xl font-semibold tabular-nums">
           Annual total: {formatFinancialAmount(snapshot.proposed_amount)}{" "}
           {snapshot.currency ? currencyLabel(snapshot.currency) : ""}
         </p>
@@ -47,7 +47,7 @@ export function AllocationSummary({
       <div className="space-y-2">
         {snapshot.allocations.map((allocation, index) => (
           <div
-            className="flex flex-wrap justify-between gap-2 rounded-lg border p-3"
+            className="flex flex-wrap justify-between gap-2 border-b py-3"
             key={allocation.department_id}
           >
             <span className="min-w-0 break-words font-medium">
@@ -62,7 +62,7 @@ export function AllocationSummary({
         ))}
       </div>
       {snapshot.reserve !== null && (
-        <p className="rounded-xl border p-3 font-medium tabular-nums">
+        <p className="border-t py-3 font-medium tabular-nums">
           Unallocated reserve: {formatFinancialAmount(snapshot.reserve)}{" "}
           {snapshot.currency}
         </p>

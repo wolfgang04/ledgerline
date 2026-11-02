@@ -11,7 +11,7 @@ export type Notify = (notice: Notice) => void;
 export function useNotice() {
   const [notice, setNotice] = useState<Notice | null>(null);
   useEffect(() => {
-    if (!notice) return;
+    if (!notice || notice.type === "error") return;
     const timeout = window.setTimeout(() => setNotice(null), 5000);
     return () => window.clearTimeout(timeout);
   }, [notice]);

@@ -1,11 +1,10 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { Building2, Users, ShieldCheck, UserPlus } from "lucide-react";
+import { Building2, Users, UserPlus } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Metrics } from "@/components/metrics";
 import { QueryState } from "@/components/query-state";
-import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Notify } from "@/components/notice";
@@ -76,9 +75,8 @@ export function OrganizationDashboard({
         }
       >
         <PageHeading
-          eyebrow="People make the difference"
-          title="The right people. In the right places."
-          description={`Manage membership, roles, and the teams that make ${organization?.name ?? "your organization"} work.`}
+          title="People & teams"
+          description={`Manage membership, roles, and departments for ${organization?.name ?? "your organization"}.`}
           action={
             canManage ? (
               <Button onClick={() => setShowInvite(!showInvite)}>
@@ -88,21 +86,19 @@ export function OrganizationDashboard({
             ) : undefined
           }
         />
-        <Alert>
+        <p className="text-xs text-muted-foreground">
           {canManage
             ? "Your administrator access applies to this organization only."
             : "You have read-only access to this organization."}
-        </Alert>
+        </p>
         <Metrics
           items={[
             {
               label: "Members",
-              icon: Users,
               value: members.data?.members.length ?? "--",
             },
             {
               label: "Administrators",
-              icon: ShieldCheck,
               value:
                 members.data?.members.filter(
                   (member) => member.role === "organization_admin",
@@ -110,7 +106,6 @@ export function OrganizationDashboard({
             },
             {
               label: "Departments",
-              icon: Building2,
               value: structure.data?.departments.length ?? "--",
             },
           ]}

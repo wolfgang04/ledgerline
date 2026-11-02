@@ -3,6 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  useLeaveConfirmation,
+  useUnsavedEditor,
+} from "@/components/unsaved-changes";
 import {
   allocationTotals,
   currencyLabel,
@@ -13,18 +18,9 @@ import type {
   BudgetDepartment,
   BudgetPlan,
   ProposalInput,
-} from "./queries";
+} from "./types";
 
-export function fiscalYearRange(year: number, month: number) {
-  const date = (value: Date) =>
-    value.toLocaleDateString("en", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC",
-    });
-  return `${date(new Date(Date.UTC(year, month - 1, 1)))} – ${date(new Date(Date.UTC(year + 1, month - 1, 0)))}`;
-}
+import { fiscalYearRange } from "./fiscal-year";
 
 export function ProposalForm({
   plan,
@@ -55,6 +51,22 @@ export function ProposalForm({
   const [amounts, setAmounts] = useState(
     allocations.map((allocation) => allocation.proposed_amount),
   );
+  const [name, setName] = useState(plan?.name ?? "");
+  const [description, setDescription] = useState(plan?.description ?? "");
+  const [reason, setReason] = useState("");
+  const snapshot = JSON.stringify({
+    name,
+    description,
+    reason,
+    year,
+    total,
+    allocations,
+    amounts,
+  });
+  const [initialSnapshot] = useState(snapshot);
+  const dirty = snapshot !== initialSnapshot;
+  const leave = useLeaveConfirmation();
+  useUnsavedEditor(dirty, pending);
   const digits = new Intl.NumberFormat("en", {
     style: "currency",
     currency,
@@ -79,10 +91,18 @@ export function ProposalForm({
   }
   return (
     <>
-      <form onSubmit={save} className="space-y-4">
+      <form
+        onSubmit={save}
+        className="max-w-5xl space-y-4 rounded-xl border bg-card p-4 sm:p-6"
+      >
         <fieldset disabled={pending} className="space-y-6">
           <legend className="mb-4 text-base font-semibold">
             Proposal details
+            {dirty && (
+              <Badge variant="warning" className="ml-3">
+                Unsaved changes
+              </Badge>
+            )}
           </legend>
           <div className="space-y-2">
             <Label htmlFor="proposal-name">Proposal title</Label>
@@ -91,7 +111,8 @@ export function ProposalForm({
               name="name"
               required
               maxLength={255}
-              defaultValue={plan?.name ?? ""}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -142,7 +163,8 @@ export function ProposalForm({
               required
               maxLength={1000}
               rows={4}
-              defaultValue={plan?.description ?? ""}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
               className="w-full rounded-lg border border-input bg-card p-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
@@ -205,7 +227,7 @@ export function ProposalForm({
             {allocations.map((allocation, index) => (
               <div
                 key={allocation.department_id}
-                className="grid items-center gap-3 rounded-xl border p-3 sm:grid-cols-[minmax(0,1fr)_12rem_5rem]"
+                className="grid items-center gap-3 border-b py-3 sm:grid-cols-[minmax(0,1fr)_12rem_5rem]"
               >
                 <div>
                   <Label htmlFor={`allocation-${allocation.department_id}`}>
@@ -262,7 +284,7 @@ export function ProposalForm({
             ))}
             <dl
               aria-live="polite"
-              className="grid gap-3 rounded-xl bg-muted/50 p-4 text-sm sm:grid-cols-2"
+              className="grid gap-3 border-y py-4 text-sm sm:grid-cols-2"
             >
               <div>
                 <dt className="text-muted-foreground">Total allocated</dt>
@@ -297,6 +319,8 @@ export function ProposalForm({
                 required
                 maxLength={1000}
                 rows={2}
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
                 className="w-full rounded-lg border border-input bg-card p-3"
               />
               <p className="text-xs text-muted-foreground">
@@ -309,7 +333,11 @@ export function ProposalForm({
             <Button type="submit" variant="default">
               {pending ? "Saving..." : plan ? "Save changes" : "Save draft"}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => leave.request(onCancel)}
+            >
               Cancel editing
             </Button>
           </div>

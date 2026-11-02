@@ -31,7 +31,11 @@ export function CreateStructureForm({
   return (
     <form
       onSubmit={submit}
-      className="flex flex-wrap items-end gap-3 rounded-xl border border-dashed border-primary/25 bg-accent/20 p-4"
+      className={
+        kind === "Department"
+          ? "flex flex-wrap items-end gap-3 rounded-xl border bg-card p-5"
+          : "flex flex-wrap items-end gap-3 border-t pt-5"
+      }
     >
       <div className="min-w-40 flex-1 space-y-2">
         <Label htmlFor={id}>{kind} name</Label>

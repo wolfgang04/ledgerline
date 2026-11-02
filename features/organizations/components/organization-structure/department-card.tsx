@@ -85,7 +85,7 @@ export function DepartmentCard({
   );
   return (
     <Card>
-      <CardHeader className="border-b bg-accent/35">
+      <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
           <Building2 className="size-4 text-primary" />
           {department.name}
@@ -206,10 +206,7 @@ export function DepartmentCard({
         )}
         <div className="space-y-3">
           {department.teams.map((team) => (
-            <section
-              key={team.id}
-              className="space-y-3 rounded-xl border border-l-4 border-l-primary/40 bg-background/60 p-4"
-            >
+            <section key={team.id} className="space-y-3 border-t pt-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h3 className="flex items-center gap-2 font-medium">

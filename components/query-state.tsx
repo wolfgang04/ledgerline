@@ -1,6 +1,7 @@
-import { FolderOpen, LoaderCircle } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { getApiError } from "@/lib/api";
+
 export function QueryState({
   loading,
   error,
@@ -14,24 +15,28 @@ export function QueryState({
 }) {
   if (loading)
     return (
-      <div
-        role="status"
-        className="flex items-center justify-center gap-3 rounded-xl bg-muted/50 p-8 text-sm text-muted-foreground"
-      >
-        <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-        Loading...
+      <div role="status" aria-label="Loading" className="space-y-3 py-6">
+        <span className="sr-only">Loading…</span>
+        <div
+          aria-hidden="true"
+          className="h-4 w-2/5 animate-pulse rounded bg-border"
+        />
+        <div
+          aria-hidden="true"
+          className="h-4 w-3/4 animate-pulse rounded bg-border/60"
+        />
+        <div
+          aria-hidden="true"
+          className="h-4 w-1/2 animate-pulse rounded bg-border/60"
+        />
       </div>
     );
   if (error) return <Alert variant="destructive">{getApiError(error)}</Alert>;
   if (empty)
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed bg-background/70 px-5 py-10 text-center">
-        <span className="grid size-11 place-items-center rounded-xl bg-accent text-primary">
-          <FolderOpen className="size-5" aria-hidden="true" />
-        </span>
-        <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-          {empty}
-        </p>
+      <div className="flex items-start gap-3 py-6 text-sm text-muted-foreground">
+        <FolderOpen className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+        <p className="max-w-prose leading-relaxed">{empty}</p>
       </div>
     );
   return children;

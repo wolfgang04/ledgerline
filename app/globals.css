@@ -5,41 +5,41 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #f4f7f5;
-  --foreground: #172e35;
+  --background: #f2f5fa;
+  --foreground: #1d2b44;
   --card: #ffffff;
-  --card-foreground: #172e35;
+  --card-foreground: #1d2b44;
   --popover: #ffffff;
-  --popover-foreground: #172e35;
-  --primary: #047857;
+  --popover-foreground: #1d2b44;
+  --primary: #3456cf;
   --primary-foreground: #ffffff;
-  --secondary: #e3eee9;
-  --secondary-foreground: #185741;
-  --muted: #edf2ef;
-  --muted-foreground: #51666c;
-  --accent: #e5f3ec;
-  --accent-foreground: #065f46;
+  --secondary: #e8edf7;
+  --secondary-foreground: #233a62;
+  --muted: #edf1f7;
+  --muted-foreground: #56657b;
+  --accent: #eaf0ff;
+  --accent-foreground: #2945ac;
   --destructive: #b42335;
   --destructive-soft: #fff0f1;
   --success: #166344;
   --success-soft: #e9f6ee;
   --warning: #92400e;
   --warning-soft: #fff5dc;
-  --info: #245b78;
-  --info-soft: #edf5fa;
-  --border: #dce6e0;
-  --input: #cbdad2;
-  --ring: #047857;
+  --info: #2945ac;
+  --info-soft: #edf1ff;
+  --border: #dce3ee;
+  --input: #7b8ca7;
+  --ring: #3456cf;
   --radius: 0.75rem;
-  --sidebar: #132b35;
-  --sidebar-foreground: #e8f1ef;
-  --sidebar-muted: #aac2c6;
-  --sidebar-primary: #8be0b6;
-  --sidebar-primary-foreground: #132b35;
-  --sidebar-accent: #22424b;
-  --sidebar-accent-foreground: #c1f6db;
-  --sidebar-border: #31505a;
-  --sidebar-ring: #8be0b6;
+  --sidebar: #233a62;
+  --sidebar-foreground: #f5f7ff;
+  --sidebar-muted: #bfcee6;
+  --sidebar-primary: #cfdaff;
+  --sidebar-primary-foreground: #233a62;
+  --sidebar-accent: #344e79;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #49618a;
+  --sidebar-ring: #cfdaff;
 }
 
 @theme inline {
@@ -94,12 +94,60 @@
     @apply border-border outline-ring/50 motion-reduce:transition-none motion-reduce:animate-none;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
   html {
     @apply font-sans;
   }
   ::selection {
     @apply bg-primary/20 text-foreground;
+  }
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+  input,
+  textarea {
+    caret-color: var(--primary);
+  }
+  textarea {
+    @apply bg-card text-base md:text-sm placeholder:text-muted-foreground disabled:opacity-50;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  a {
+    text-underline-offset: 4px;
+  }
+  * {
+    scrollbar-color: var(--input) transparent;
+    scrollbar-width: thin;
+  }
+  summary {
+    @apply rounded-sm outline-offset-4;
+  }
+}
+
+@media (width < 48rem), (pointer: coarse) {
+  [data-slot="dialog-title"] {
+    padding-inline-end: 3rem;
+  }
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="select-trigger"] {
+    min-height: 2.75rem;
+  }
+  [data-slot="button"] {
+    min-width: 2.75rem;
+  }
+  input,
+  textarea {
+    font-size: 1rem;
+    line-height: 1.5;
   }
 }

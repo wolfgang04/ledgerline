@@ -1,11 +1,6 @@
-﻿import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useState, type FormEvent } from "react";
+import { useReviewThread } from "./use-review-thread";
+import { ReviewMessageItem } from "./review-message";
 import { MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,18 +21,8 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { formatBudgetTimestamp, conversationEdits } from "@/lib/budget";
 import { ChangeHistory } from "./change-history";
-import {
-  conversationReadKey,
-  markMessagesRead,
-  parseReadIds,
-  readSnapshot,
-  subscribeConversationReads,
-  unreadMessages,
-} from "@/lib/conversations";
-import { AllocationSummary } from "./allocation-summary";
-import type { ProposalDetail, ReviewMessage } from "./queries";
+import type { ProposalDetail, ReviewMessage } from "./types";
 
 type MessageInput = {
   revision_number: number;
@@ -75,11 +60,6 @@ export function ReviewConversations({
   );
   const [round, setRound] = useState(String(detail.plan.revision_number));
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
-  const [atBottom, setAtBottom] = useState(true);
-  const [openedMaxId, setOpenedMaxId] = useState(0);
-  const nearBottom = useRef(true);
-  const openedThread = useRef("");
   const departmentId = scope === "company" ? null : Number(scope);
   const currentRound = Number(round) === detail.plan.revision_number;
   const canPost =
@@ -88,114 +68,18 @@ export function ReviewConversations({
     ["under_review", "changes_requested", "revising"].includes(
       detail.plan.status,
     );
-  const keyFor = (department: number | null, version: number) =>
-    conversationReadKey(
-      userId,
-      detail.plan.organization_id,
-      detail.plan.id,
-      department,
-      version,
-    );
-  const thread = keyFor(departmentId, Number(round));
-  const keys = [
-    ...new Set(
-      detail.messages.map((message) =>
-        keyFor(message.department_id, message.revision_number),
-      ),
-    ),
-  ];
-  const snapshot = useSyncExternalStore(
-    subscribeConversationReads,
-    () =>
-      JSON.stringify(
-        Object.fromEntries(keys.map((key) => [key, readSnapshot(key)])),
-      ),
-    () => "{}",
-  );
-  const reads = JSON.parse(snapshot) as Record<string, string>;
-  const unread = detail.messages.filter(
-    (message) =>
-      unreadMessages(
-        [message],
-        userId,
-        parseReadIds(
-          reads[keyFor(message.department_id, message.revision_number)] ?? null,
-        ),
-      ).length > 0,
-  );
-  const count = (department: number | null, version?: number) =>
-    unread.filter(
-      (message) =>
-        message.department_id === department &&
-        (version === undefined || message.revision_number === version),
-    ).length;
-  const messages = detail.messages.filter(
-    (message) =>
-      message.department_id === departmentId &&
-      message.revision_number === Number(round),
-  );
-  const timeline = [
-    ...messages.map((message) => ({
-      type: "message" as const,
-      message,
-      at: message.created_at,
-    })),
-    ...conversationEdits(detail.audit, departmentId, Number(round)).map(
-      (edit) => ({ type: "edit" as const, edit, at: edit.created_at }),
-    ),
-  ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
-  const incoming = unread.filter(
-    (message) =>
-      message.department_id === departmentId &&
-      message.revision_number === Number(round) &&
-      message.id > openedMaxId,
-  ).length;
-
-  useLayoutEffect(() => {
-    if (!open || !viewport) return;
-    if (openedThread.current !== thread) {
-      openedThread.current = thread;
-      nearBottom.current = true;
-    }
-    if (nearBottom.current) viewport.scrollTo({ top: viewport.scrollHeight });
-  }, [open, viewport, thread, messages]);
-
-  useEffect(() => {
-    if (!open || !viewport) return;
-    const observe = () => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (document.visibilityState !== "visible") return;
-          markMessagesRead(
-            thread,
-            entries
-              .filter((entry) => entry.isIntersecting)
-              .map((entry) =>
-                Number((entry.target as HTMLElement).dataset.messageId),
-              ),
-          );
-        },
-        { root: viewport, threshold: 0.01 },
-      );
-      viewport
-        .querySelectorAll<HTMLElement>("[data-message-id]")
-        .forEach((element) => {
-          if (element.dataset.authorId !== String(userId))
-            observer.observe(element);
-        });
-      return observer;
-    };
-    let observer = observe();
-    const visibility = () => {
-      observer.disconnect();
-      if (document.visibilityState === "visible") observer = observe();
-    };
-    document.addEventListener("visibilitychange", visibility);
-    return () => {
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", visibility);
-    };
-  }, [open, viewport, thread, messages, userId]);
+  const {
+    thread,
+    unread,
+    count,
+    timeline,
+    incoming,
+    atBottom,
+    setViewport,
+    resetThread,
+    onScroll,
+    scrollToBottom,
+  } = useReviewThread(detail, userId, departmentId, round, open);
 
   async function post(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -219,9 +103,7 @@ export function ReviewConversations({
       onOpenChange={(value) => {
         setOpen(value);
         if (value) {
-          openedThread.current = "";
-          nearBottom.current = true;
-          setOpenedMaxId(messages.at(-1)?.id ?? 0);
+          resetThread();
           onRefresh();
         }
       }}
@@ -257,16 +139,9 @@ export function ReviewConversations({
                 onValueChange={(value) => {
                   if (value) {
                     setScope(value);
-                    nearBottom.current = true;
-                    setOpenedMaxId(
-                      detail.messages
-                        .filter(
-                          (message) =>
-                            message.department_id ===
-                              (value === "company" ? null : Number(value)) &&
-                            message.revision_number === Number(round),
-                        )
-                        .at(-1)?.id ?? 0,
+                    resetThread(
+                      value === "company" ? null : Number(value),
+                      Number(round),
                     );
                   }
                 }}
@@ -315,16 +190,7 @@ export function ReviewConversations({
                 onValueChange={(value) => {
                   if (value) {
                     setRound(value);
-                    nearBottom.current = true;
-                    setOpenedMaxId(
-                      detail.messages
-                        .filter(
-                          (message) =>
-                            message.department_id === departmentId &&
-                            message.revision_number === Number(value),
-                        )
-                        .at(-1)?.id ?? 0,
-                    );
+                    resetThread(departmentId, Number(value));
                   }
                 }}
               >
@@ -355,7 +221,7 @@ export function ReviewConversations({
           <p className="text-xs text-muted-foreground">
             {scope === "company"
               ? "Visible to finance, company managers, and administrators."
-              : "Visible to this departmentâ€™s managers, finance, company managers, and administrators."}
+              : "Visible to this department's managers, finance, company managers, and administrators."}
           </p>
           <Button
             type="button"
@@ -371,17 +237,7 @@ export function ReviewConversations({
         <div
           ref={setViewport}
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4"
-          onScroll={() => {
-            if (viewport) {
-              const bottom =
-                viewport.scrollHeight -
-                  viewport.scrollTop -
-                  viewport.clientHeight <
-                48;
-              nearBottom.current = bottom;
-              setAtBottom(bottom);
-            }
-          }}
+          onScroll={onScroll}
         >
           {!timeline.length && (
             <p className="py-8 text-center text-sm text-muted-foreground">
@@ -396,56 +252,13 @@ export function ReviewConversations({
                     <ChangeHistory detail={detail} edit={entry.edit} />
                   </li>
                 );
-              const message = entry.message;
               return (
-                <li
-                  key={message.id}
-                  data-message-id={message.id}
-                  data-author-id={message.created_by}
-                  className={`w-fit max-w-[95%] space-y-2 rounded-2xl border p-3 ${message.created_by === userId ? "ml-auto rounded-br-sm border-primary/15 bg-accent" : "mr-auto rounded-bl-sm bg-muted/50"}`}
-                >
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="font-semibold">
-                      {message.created_by === userId
-                        ? "You"
-                        : (message.author_name ??
-                          `Member ${message.created_by}`)}
-                    </span>
-                    <Badge>{message.kind.replaceAll("_", " ")}</Badge>
-                    {message.request_id && (
-                      <span>Request #{message.request_id}</span>
-                    )}
-                  </div>
-                  <p className="whitespace-pre-wrap break-words text-sm">
-                    {message.description_comments}
-                  </p>
-                  {message.agreement_snapshot && (
-                    <details>
-                      <summary className="cursor-pointer text-xs">
-                        Values confirmed in this agreement
-                      </summary>
-                      <AllocationSummary
-                        snapshot={message.agreement_snapshot}
-                      />
-                    </details>
-                  )}
-                  {message.kind === "request_changes" && (
-                    <p className="text-xs text-muted-foreground">
-                      Request #{message.id}:{" "}
-                      {currentRound
-                        ? message.agreed
-                          ? "Agreed on current values"
-                          : "Finance can address this in a new submission"
-                        : "Previous review round"}
-                    </p>
-                  )}
-                  <time
-                    className="block text-[11px] text-muted-foreground"
-                    dateTime={message.created_at}
-                  >
-                    {formatBudgetTimestamp(message.created_at)}
-                  </time>
-                </li>
+                <ReviewMessageItem
+                  key={entry.message.id}
+                  message={entry.message}
+                  userId={userId}
+                  currentRound={currentRound}
+                />
               );
             })}
           </ol>
@@ -455,13 +268,7 @@ export function ReviewConversations({
             type="button"
             variant="outline"
             className="mx-auto my-2 shrink-0"
-            onClick={() => {
-              if (viewport) {
-                viewport.scrollTo({ top: viewport.scrollHeight });
-                nearBottom.current = true;
-                setAtBottom(true);
-              }
-            }}
+            onClick={scrollToBottom}
           >
             New messages ({incoming}) â†“
           </Button>

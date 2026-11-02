@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { ShieldCheck } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Metrics } from "@/components/metrics";
@@ -22,14 +21,8 @@ export function PlatformDashboard() {
   return (
     <DashboardShell title="Platform administration">
       <PageHeading
-        eyebrow="Platform administration"
-        title="See the bigger picture."
+        title="Platform administration"
         description="A clear view of the people and organizations on Ledgerline. Platform access remains separate from organization permissions."
-        action={
-          <span className="grid size-14 place-items-center rounded-2xl border border-sidebar-border bg-sidebar-accent text-sidebar-primary">
-            <ShieldCheck className="size-7" />
-          </span>
-        }
       />
       <QueryState loading={overview.isLoading} error={overview.error}>
         <Metrics

@@ -73,6 +73,9 @@ export function MemberDirectory({
             Department and team details could not be loaded.
           </Alert>
         )}
+        <p className="text-xs text-muted-foreground sm:hidden">
+          Swipe across the table to view departments, teams, and roles.
+        </p>
         {!visible.length ? (
           <p className="py-6 text-sm text-muted-foreground">
             No members match this search.

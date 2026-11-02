@@ -32,7 +32,7 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
         </span>
         <span
           className={cn(
-            "block text-[10px] font-medium uppercase tracking-[0.18em]",
+            "block whitespace-nowrap text-[9px] font-medium uppercase tracking-[0.12em]",
             inverse ? "text-sidebar-muted" : "text-muted-foreground",
           )}
         >
