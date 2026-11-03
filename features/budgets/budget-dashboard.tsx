@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { PageHeading } from "@/components/page-heading";
 import { QueryState } from "@/components/query-state";
 import { Alert } from "@/components/ui/alert";
@@ -43,10 +42,7 @@ export function BudgetDashboard({
   const settings = settingsQuery.data?.settings;
   const ready = !!settings?.currency && !!settings.fiscal_year_start_month;
   return (
-    <DashboardShell
-      title={`${organization?.name ?? "Organization"} · Budgets`}
-      organizationId={organizationId}
-    >
+    <div className="space-y-5">
       <PageHeading
         title={
           selected === null
@@ -203,6 +199,6 @@ export function BudgetDashboard({
           )}
         </QueryState>
       </QueryState>
-    </DashboardShell>
+    </div>
   );
 }

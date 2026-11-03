@@ -127,7 +127,7 @@ export function ReviewConversations({
         <SheetHeader className="shrink-0 border-b pr-12">
           <SheetTitle>Proposal conversations</SheetTitle>
           <SheetDescription>
-            {detail.plan.name} Â· Messages and review decisions are permanent.
+            {detail.plan.name} · Messages and review decisions are permanent.
           </SheetDescription>
         </SheetHeader>
         <div className="shrink-0 space-y-3 border-b p-4">

@@ -33,9 +33,10 @@ export function WorkspaceNavigation({
   const leave = useLeaveConfirmation();
   const pathname = usePathname();
   const organizations = useOrganizationsQuery(!platform);
-  const membershipRole = organizations.data?.organizations.find(
+  const membership = organizations.data?.organizations.find(
     (item) => item.id === organizationId,
-  )?.role;
+  );
+  const membershipRole = membership?.role;
   const links = [
     {
       href: "/",
@@ -51,7 +52,8 @@ export function WorkspaceNavigation({
           },
           ...(membershipRole === "finance" ||
           membershipRole === "organization_admin" ||
-          membershipRole === "manager"
+          membershipRole === "manager" ||
+          (membershipRole === "employee" && !!membership?.department_id)
             ? [
                 {
                   href: `/organizations/${organizationId}/budgets`,

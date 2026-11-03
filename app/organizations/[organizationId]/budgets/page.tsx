@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/features/auth/session-provider";
-import { BudgetDashboard } from "@/features/budgets/budget-dashboard";
+import { BudgetWorkspace } from "@/features/budgets/budget-workspace";
 import { NoticeMessage, useNotice } from "@/components/notice";
 import { QueryState } from "@/components/query-state";
 import { UnsavedChangesProvider } from "@/components/unsaved-changes";
@@ -25,7 +25,7 @@ export default function BudgetsPage() {
 
   return (
     <UnsavedChangesProvider key={organizationId}>
-      <BudgetDashboard
+      <BudgetWorkspace
         key={organizationId}
         organizationId={organizationId}
         onNotice={notify}
