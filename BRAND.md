@@ -1,7 +1,7 @@
 # Ledgerline brand
 
-The Ledgerline name, ledger-corner mark, and self-hosted Geist fonts are retained. The approved application direction is Civic Record: indigo navigation, a pale cool canvas, white work surfaces, cobalt actions, and semantic financial states.
+Ledgerline's Capital Standard identity uses an offset ledger-line mark, graphite navigation, jade actions, warm neutral surfaces, and self-hosted Public Sans. The name stays unchanged. Compact financial rows and exact tabular amounts carry the product's work; semantic colors distinguish status from selection.
 
-The canonical design tokens and application rules are in [DESIGN.md](../DESIGN.md) and [.impeccable/design.json](../.impeccable/design.json). Use semantic Tailwind colors from `app/globals.css` and shared components rather than separate palettes.
+The canonical tokens and application rules are in [DESIGN.md](../DESIGN.md) and [.impeccable/design.json](../.impeccable/design.json). Reuse semantic Tailwind colors from `app/globals.css` and the existing Base UI controls.
 
-Reuse `Brand` and `LedgerlineMark`; the app icon uses the same geometry. Geist font files in `app/fonts` retain their SIL OFL license and attribution. No raster assets were added for this redesign.
+Reuse `Brand` and `LedgerlineMark`; the app icon uses the same geometry. Public Sans static 400/500/600/700 webfonts in `app/fonts` retain their SIL OFL license and attribution in `PUBLIC-SANS-LICENSE.md`. Geist Mono remains available for code. No raster assets ship with this redesign.

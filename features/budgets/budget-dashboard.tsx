@@ -1,12 +1,18 @@
 "use client";
-import { useState } from "react";
 import { Plus } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
 import { QueryState } from "@/components/query-state";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import type { Notify } from "@/components/notice";
 import { getApiError } from "@/lib/api";
 import { formatFinancialAmount, currencyLabel } from "@/lib/budget";
@@ -19,6 +25,7 @@ import {
 import { FinancialSettingsForm } from "./financial-settings-form";
 import { NewProposal } from "./new-proposal";
 import { ProposalDetailPanel } from "./proposal-detail";
+import { useBudgetLocation } from "./use-budget-location";
 
 export function BudgetDashboard({
   organizationId,
@@ -38,7 +45,17 @@ export function BudgetDashboard({
   const settingsQuery = useFinancialSettings(organizationId, allowed);
   const plansQuery = useBudgetPlans(organizationId, allowed);
   const mutation = useBudgetMutation(organizationId);
-  const [selected, setSelected] = useState<number | "new" | null>(null);
+  const location = useBudgetLocation();
+  const proposal = location.params.get("proposal");
+  const proposalId = Number(proposal);
+  const selected =
+    proposal === "new"
+      ? "new"
+      : Number.isSafeInteger(proposalId) && proposalId > 0
+        ? proposalId
+        : null;
+  const setSelected = (value: number | "new" | null) =>
+    location.update({ proposal: value });
   const settings = settingsQuery.data?.settings;
   const ready = !!settings?.currency && !!settings.fiscal_year_start_month;
   return (
@@ -46,7 +63,7 @@ export function BudgetDashboard({
       <PageHeading
         title={
           selected === null
-            ? "Budget proposals"
+            ? "Budget planning"
             : selected === "new"
               ? "New annual proposal"
               : (plansQuery.data?.plans.find((plan) => plan.id === selected)
@@ -156,46 +173,87 @@ export function BudgetDashboard({
             </section>
           )}
           {selected === null && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Annual proposals</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {!plansQuery.data?.plans.length && (
-                  <p className="text-sm text-muted-foreground">
-                    {finance
-                      ? "No annual proposals yet."
-                      : "No submitted proposals available for review."}
-                  </p>
-                )}
-                {plansQuery.data?.plans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="flex flex-wrap items-center justify-between gap-4 border-b py-4 transition-colors last:border-0 hover:bg-muted/30"
-                  >
-                    <div className="min-w-0">
-                      <p className="break-words font-medium">{plan.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        FY {plan.fiscal_year}
-                        {plan.proposed_amount !== null
-                          ? ` · ${settings?.currency ?? ""} ${formatFinancialAmount(plan.proposed_amount)}`
-                          : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge>{plan.status.replaceAll("_", " ")}</Badge>
-                      <Button
-                        variant="outline"
-                        onClick={() => setSelected(plan.id)}
-                      >
-                        {selected === plan.id ? "Viewing" : "Open proposal"}
-                        <span className="sr-only"> {plan.name}</span>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <section
+              className="workspace-panel"
+              aria-labelledby="annual-proposals-heading"
+            >
+              <div className="panel-heading">
+                <h2 id="annual-proposals-heading">Annual proposals</h2>
+                <span className="text-xs text-muted-foreground">
+                  {plansQuery.data?.plans.length ?? 0} proposals
+                </span>
+              </div>
+              {!plansQuery.data?.plans.length ? (
+                <p className="p-5 text-sm text-muted-foreground">
+                  {finance
+                    ? "No annual proposals yet. Create a proposal to plan department allocations."
+                    : "No submitted proposals available for review."}
+                </p>
+              ) : (
+                <Table
+                  aria-label="Annual proposal register"
+                  className="proposal-register"
+                >
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Proposal</TableHead>
+                      <TableHead>Fiscal year</TableHead>
+                      <TableHead className="text-right">
+                        Annual amount ({settings?.currency})
+                      </TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {plansQuery.data?.plans.map((plan) => (
+                      <TableRow key={plan.id}>
+                        <TableCell className="max-w-72 whitespace-normal break-words font-medium">
+                          {plan.name}
+                        </TableCell>
+                        <TableCell data-label="Fiscal year">
+                          FY {plan.fiscal_year}
+                        </TableCell>
+                        <TableCell
+                          data-label="Annual amount"
+                          className="text-right tabular-nums"
+                        >
+                          {plan.proposed_amount === null
+                            ? "Scoped to department"
+                            : formatFinancialAmount(plan.proposed_amount)}
+                        </TableCell>
+                        <TableCell data-label="Status">
+                          <Badge
+                            variant={
+                              plan.status === "approved"
+                                ? "success"
+                                : plan.status === "under_review"
+                                  ? "warning"
+                                  : plan.status === "rejected"
+                                    ? "destructive"
+                                    : "default"
+                            }
+                          >
+                            {plan.status.replaceAll("_", " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelected(plan.id)}
+                          >
+                            Open proposal
+                            <span className="sr-only"> {plan.name}</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </section>
           )}
         </QueryState>
       </QueryState>

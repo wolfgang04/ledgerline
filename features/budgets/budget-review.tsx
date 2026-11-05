@@ -195,7 +195,7 @@ export function BudgetReviewPanel({
           {finance && !detail.committed_budget && (
             <>
               <Button disabled={pending || !allApproved} onClick={onCommit}>
-                Commit approved budget
+                Activate approved budget
               </Button>
               {!allApproved && (
                 <p className="text-sm text-muted-foreground">

@@ -1,9 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLeaveConfirmation } from "@/components/unsaved-changes";
-import { ChevronRight, Menu } from "lucide-react";
+import {
+  ChevronRight,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import { useSession } from "@/features/auth/session-provider";
 import { useOrganizationsQuery } from "@/features/organizations/queries";
 import { Button } from "@/components/ui/button";
@@ -16,6 +21,27 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { WorkspaceNavigation } from "./workspace-navigation";
+
+function subscribeNavigation(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener("ledgerline-navigation", callback);
+  window.addEventListener("resize", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("ledgerline-navigation", callback);
+    window.removeEventListener("resize", callback);
+  };
+}
+function navigationPreference() {
+  try {
+    return (
+      localStorage.getItem("ledgerline-navigation") ??
+      (window.innerWidth < 1024 ? "collapsed" : "expanded")
+    );
+  } catch {
+    return window.innerWidth < 1024 ? "collapsed" : "expanded";
+  }
+}
 
 export function DashboardShell({
   title,
@@ -30,28 +56,60 @@ export function DashboardShell({
   const leave = useLeaveConfirmation();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const preference = useSyncExternalStore(
+    subscribeNavigation,
+    navigationPreference,
+    () => "expanded",
+  );
+  const collapsed = preference === "collapsed";
   const platform = user?.role === "platform_admin" && !organizationId;
   const organizations = useOrganizationsQuery(!platform);
   const role = organizations.data?.organizations.find(
     (item) => item.id === organizationId,
   )?.role;
   return (
-    <div className="min-h-svh md:grid md:grid-cols-[14.5rem_minmax(0,1fr)]">
+    <div
+      className={`min-h-svh md:grid ${collapsed ? "md:grid-cols-[4rem_minmax(0,1fr)]" : "md:grid-cols-[15rem_minmax(0,1fr)]"}`}
+    >
       <a
         href="#main-content"
         className="sr-only z-50 rounded-lg bg-primary p-3 text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         Skip to content
       </a>
-      <aside className="sticky top-0 hidden h-svh flex-col overflow-y-auto bg-sidebar text-sidebar-foreground md:flex">
+      <aside
+        className="sticky top-0 hidden h-svh flex-col overflow-y-auto bg-sidebar text-sidebar-foreground md:flex"
+        aria-label="Main navigation"
+      >
         <WorkspaceNavigation
           organizationId={organizationId}
           platform={platform}
+          collapsed={collapsed}
           onNavigate={() => setMobileOpen(false)}
         />
       </aside>
       <div className="flex min-w-0 flex-col">
         <header className="flex min-h-16 items-center gap-3 border-b bg-card px-4 sm:px-6 lg:px-8">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="hidden md:inline-flex"
+            aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+            aria-expanded={!collapsed}
+            onClick={() => {
+              try {
+                localStorage.setItem(
+                  "ledgerline-navigation",
+                  collapsed ? "expanded" : "collapsed",
+                );
+              } catch {
+                return;
+              }
+              window.dispatchEvent(new Event("ledgerline-navigation"));
+            }}
+          >
+            {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+          </Button>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger
               render={
@@ -110,7 +168,7 @@ export function DashboardShell({
         </header>
         <main
           id="main-content"
-          className="mx-auto w-full max-w-[90rem] flex-1 space-y-6 p-4 sm:p-6 lg:p-8"
+          className="mx-auto w-full max-w-[100rem] flex-1 space-y-6 p-4 sm:p-6 lg:p-8"
         >
           {children}
         </main>

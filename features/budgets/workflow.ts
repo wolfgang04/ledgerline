@@ -2,7 +2,7 @@ export const reviewSteps = [
   "Finance submits",
   "Departments approve",
   "Overall approval",
-  "Finance commits",
+  "Finance activates",
 ];
 
 export function reviewStep(stage: string) {
@@ -27,7 +27,7 @@ export function reviewStatus(stage: string) {
     case "overall_review":
       return "Ready for overall approval";
     case "ready_to_commit":
-      return "Approved · Ready for Finance to commit";
+      return "Approved · Ready for Finance to activate";
     case "active":
       return "Budget active";
     case "changes_requested":

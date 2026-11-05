@@ -16,18 +16,18 @@ related_targets:
 
 # Ledgerline application redesign
 
-Mode: Operate. Scope: authentication, workspace overview, people and teams, budgets, platform administration, and shared controls. Primary users are Finance and managers. Preserve product rules, identity assets, permissions, and financial evidence.
+Mode: Operate. Scope: the entire existing application. Preserve the Ledgerline name, product rules, permissions, APIs, and financial evidence. Finance and department managers use this in an ordinary, well-lit office throughout the working day.
 
 ## Direction contract
 
-THESIS: Make the next financial decision legible; replace decorative dashboard banners and scattered action panels with a consistent task workspace.
+THESIS: Put the budget position and the next decision together, replacing planning-first navigation with an operational financial workspace.
 
-OWN-WORLD: Civic Record uses an indigo navigation rail, cool pale canvas, white work surfaces, restrained cobalt actions, semantic state colors, Geist typography, precise tabular money, and consistent compact controls.
+OWN-WORLD: Capital Standard uses graphite navigation, jade actions and selection, warm neutral ground, white surfaces, Public Sans, tabular amounts, compact rows, and offset ledger lines for its mark. Semantic colors identify financial states.
 
-STORY: Users identify the workspace, fiscal period, current review stage, saved evidence, and next permitted action; department spending and approval stay together.
+STORY: Finance reads the annual position and reviews decisions; managers read their department plan and authorize spending; members read their plan and private requests. All existing workflows remain accessible.
 
-FIRST VIEWPORT: Familiar navigation at left, a compact context header, page title and primary action, real summary numbers, then the current work. Budget details lead with a four-stage progress strip and department review. Mobile navigation collapses; data and actions stack without horizontal page overflow.
+FIRST VIEWPORT: A collapsible left sidebar and compact context header frame a financial overview. A compact balance statement leads into department comparisons beside a visible decision queue. The signature budget-position bar separates committed authorization, department availability, and reserve, with exact text values. Mobile stacks the same evidence with a navigation drawer.
 
-FORM: Modernist public-service identity systems, candidate 4 of seven grounded directions; seed:5c394a943aa4f5fe. User chose Civic Record on the direction board. Code-led application build; no approved comp exists.
+FORM: User-pinned Capital Standard overrides the assignment; seed:e196880cb6bdb279. Code-led Operate build, no approved comp. The approved plan settles the direction and composition; no second selection round is required.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

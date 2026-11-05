@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { usePathname } from "next/navigation";
 import { QueryState } from "@/components/query-state";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useLeaveConfirmation } from "@/components/unsaved-changes";
@@ -28,22 +28,28 @@ export function BudgetWorkspace({
     (!!organization?.department_id &&
       ["employee", "manager"].includes(organization?.role ?? ""));
   const [tab, setTab] = useState("annual");
+  const spendingRoute = usePathname().endsWith("/spending");
   const leave = useLeaveConfirmation();
   return (
-    <DashboardShell
-      title={`${organization?.name ?? "Organization"} · Budgets`}
-      organizationId={organizationId}
-    >
+    <div className="space-y-6">
       <QueryState
         loading={organizations.isLoading}
         error={organizations.error}
         empty={
-          !annual && !spending
+          (spendingRoute ? !spending : !annual && !spending)
             ? "Join a department to request spending. Finance or manager membership is required to review budgets."
             : undefined
         }
       >
-        {annual && spending ? (
+        {spendingRoute ? (
+          spending && (
+            <SpendingDashboard
+              organizationId={organizationId}
+              role={organization!.role!}
+              onNotice={onNotice}
+            />
+          )
+        ) : annual && spending ? (
           <Tabs
             value={tab}
             onValueChange={(value) =>
@@ -86,6 +92,6 @@ export function BudgetWorkspace({
           />
         ) : null}
       </QueryState>
-    </DashboardShell>
+    </div>
   );
 }

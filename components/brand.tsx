@@ -10,35 +10,32 @@ export function LedgerlineMark({ className, ...props }: ComponentProps<"svg">) {
       className={cn("size-10 shrink-0", className)}
       {...props}
     >
-      <rect width="40" height="40" rx="12" fill="currentColor" />
-      <path d="M12 11v18h17v-5H17V11h-5Z" fill="white" />
-      <path d="M22 11h7v8h-7z" fill="white" opacity=".6" />
+      <path
+        d="M7 7h6v26H7zM17 7h16v6H17zM17 17h12v6H17zM17 27h16v6H17z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
 
-export function Brand({ inverse = false }: { inverse?: boolean }) {
+export function Brand({
+  inverse = false,
+  compact = false,
+}: {
+  inverse?: boolean;
+  compact?: boolean;
+}) {
   return (
-    <span className="inline-flex items-center gap-3">
+    <span className="inline-flex items-center gap-2.5">
       <LedgerlineMark
-        className={inverse ? "text-sidebar-primary/25" : "text-primary"}
+        className={cn(
+          "size-8",
+          inverse ? "text-sidebar-primary" : "text-primary",
+        )}
       />
-      <span>
-        <span className="block text-xl font-semibold tracking-tight">
-          ledgerline
-          <span className={inverse ? "text-sidebar-primary" : "text-primary"}>
-            .
-          </span>
-        </span>
-        <span
-          className={cn(
-            "block whitespace-nowrap text-[9px] font-medium uppercase tracking-[0.12em]",
-            inverse ? "text-sidebar-muted" : "text-muted-foreground",
-          )}
-        >
-          Financial operations
-        </span>
-      </span>
+      {!compact && (
+        <span className="text-xl font-semibold tracking-tight">Ledgerline</span>
+      )}
     </span>
   );
 }

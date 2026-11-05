@@ -5,6 +5,8 @@ const variants = {
   primary: "border-primary/15 bg-accent text-accent-foreground",
   warning: "border-warning/15 bg-warning-soft text-warning",
   info: "border-info/15 bg-info-soft text-info",
+  success: "border-success/15 bg-success-soft text-success",
+  destructive: "border-destructive/15 bg-destructive-soft text-destructive",
 };
 export function Badge({
   className,

@@ -24,7 +24,11 @@ export function PlatformDashboard() {
         title="Platform administration"
         description="A clear view of the people and organizations on Ledgerline. Platform access remains separate from organization permissions."
       />
-      <QueryState loading={overview.isLoading} error={overview.error}>
+      <QueryState
+        loading={overview.isLoading}
+        error={overview.error}
+        retry={() => void overview.refetch()}
+      >
         <Metrics
           items={[
             { label: "Users", value: overview.data?.metrics.users ?? "--" },
@@ -55,6 +59,7 @@ export function PlatformDashboard() {
             <QueryState
               loading={users.isLoading}
               error={users.error}
+              retry={() => void users.refetch()}
               empty={!users.data?.users.length ? "No users found." : undefined}
             >
               <div className="divide-y">
@@ -93,6 +98,7 @@ export function PlatformDashboard() {
             <QueryState
               loading={organizations.isLoading}
               error={organizations.error}
+              retry={() => void organizations.refetch()}
               empty={
                 !organizations.data?.organizations.length
                   ? "No organizations found."

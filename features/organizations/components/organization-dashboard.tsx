@@ -2,7 +2,6 @@
 import { useState, type FormEvent } from "react";
 import { Building2, Users, UserPlus } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Metrics } from "@/components/metrics";
 import { QueryState } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
@@ -61,10 +60,7 @@ export function OrganizationDashboard({
     );
   }
   return (
-    <DashboardShell
-      title={organization?.name ?? "Organization"}
-      organizationId={organizationId}
-    >
+    <div className="space-y-6">
       <QueryState
         loading={organizations.isLoading}
         error={organizations.error}
@@ -128,7 +124,11 @@ export function OrganizationDashboard({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="people">
-            <QueryState loading={members.isLoading} error={members.error}>
+            <QueryState
+              loading={members.isLoading}
+              error={members.error}
+              retry={() => void members.refetch()}
+            >
               <MemberDirectory
                 members={members.data?.members ?? []}
                 departments={structure.data?.departments}
@@ -162,6 +162,6 @@ export function OrganizationDashboard({
           </TabsContent>
         </Tabs>
       </QueryState>
-    </DashboardShell>
+    </div>
   );
 }

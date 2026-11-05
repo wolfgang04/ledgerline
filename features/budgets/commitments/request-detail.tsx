@@ -106,10 +106,22 @@ export function RequestDetailPanel({
                 {request.allocated_to_user_id !== null && (
                   <Badge>Manager allocation</Badge>
                 )}
-                <Badge>{request.status}</Badge>
+                <Badge
+                  variant={
+                    request.status === "approved"
+                      ? "success"
+                      : request.status === "pending"
+                        ? "warning"
+                        : request.status === "rejected"
+                          ? "destructive"
+                          : "default"
+                  }
+                >
+                  {request.status}
+                </Badge>
               </div>
             </div>
-            <dl className="flex flex-wrap gap-x-10 gap-y-4 border-y py-4 text-sm">
+            <dl className="grid gap-4 border-y py-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <dt className="text-muted-foreground">
                   {request.allocated_to_user_id !== null

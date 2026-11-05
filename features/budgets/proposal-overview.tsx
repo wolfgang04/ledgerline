@@ -22,7 +22,7 @@ export function ProposalOverview({ snapshot }: { snapshot: ProposalSnapshot }) {
           value: item.proposed_amount,
         }));
   return (
-    <div className="space-y-3 border-y py-4">
+    <div className="space-y-3 rounded-lg border bg-card p-5">
       <p className="text-sm text-muted-foreground">
         {snapshot.fiscal_year_start_month
           ? fiscalYearRange(
@@ -31,7 +31,7 @@ export function ProposalOverview({ snapshot }: { snapshot: ProposalSnapshot }) {
             )
           : `FY ${snapshot.fiscal_year}`}
       </p>
-      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <dl className="grid gap-4 sm:grid-cols-3">
         {amounts.map(({ label, value }) => (
           <div key={label}>
             <dt className="text-xs font-medium text-muted-foreground">

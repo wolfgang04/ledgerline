@@ -1,8 +1,7 @@
 "use client";
 import Link from "next/link";
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { ArrowUpRight, Building2, ChevronRight } from "lucide-react";
-import { Metrics } from "@/components/metrics";
 import { PageHeading } from "@/components/page-heading";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { organizationHref } from "../navigation";
@@ -33,6 +32,7 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
   const invitations = useMyInvitationsQuery();
   const create = useCreateOrganizationMutation();
   const accept = useAcceptInvitationMutation();
+  const [creating, setCreating] = useState(false);
   const onError = (error: unknown) =>
     onNotice({ type: "error", text: getApiError(error) });
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -45,6 +45,7 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
           type: "success",
           text: `${organization.name} is ready. You are its administrator.`,
         });
+        setCreating(false);
       },
       onError,
     });
@@ -54,27 +55,14 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
       <PageHeading
         title="Your workspaces"
         description="Open an organization to review budgets, manage your team, or continue your work."
+        action={
+          <Button variant="outline" onClick={() => setCreating(!creating)}>
+            {creating ? "Close workspace form" : "Create a workspace"}
+            <ArrowUpRight />
+          </Button>
+        }
       />
-      <Metrics
-        items={[
-          {
-            label: "Your organizations",
-            value: organizations.data?.organizations.length ?? "--",
-          },
-          {
-            label: "Pending invitations",
-            value: invitations.data?.invitations.length ?? "--",
-          },
-          {
-            label: "Workspaces you manage",
-            value:
-              organizations.data?.organizations.filter(
-                (item) => item.role === "organization_admin",
-              ).length ?? "--",
-          },
-        ]}
-      />
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid items-start gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Your organizations</CardTitle>
@@ -86,6 +74,7 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
             <QueryState
               loading={organizations.isLoading}
               error={organizations.error}
+              retry={() => void organizations.refetch()}
               empty={
                 !organizations.data?.organizations.length
                   ? "No organizations yet. Create your first workspace."
@@ -116,37 +105,39 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
             </QueryState>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Start a workspace</CardTitle>
-            <CardDescription>
-              You become its initial administrator.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={submit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="organization-name">Organization name</Label>
-                <Input
-                  id="organization-name"
-                  name="name"
-                  required
-                  maxLength={255}
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={create.isPending}
-              >
-                {create.isPending ? "Creating..." : "Create organization"}
-                <ArrowUpRight />
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        {creating && (
+          <Card className="max-w-xl">
+            <CardHeader>
+              <CardTitle>Start a workspace</CardTitle>
+              <CardDescription>
+                You become its initial administrator.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={submit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="organization-name">Organization name</Label>
+                  <Input
+                    id="organization-name"
+                    name="name"
+                    required
+                    maxLength={255}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={create.isPending}
+                >
+                  {create.isPending ? "Creating..." : "Create organization"}
+                  <ArrowUpRight />
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
       </div>
-      <Card>
+      <Card className="border-0 bg-transparent py-0">
         <CardHeader>
           <CardTitle>Invitations</CardTitle>
           <CardDescription>
@@ -157,6 +148,7 @@ export function Dashboard({ onNotice }: { onNotice: Notify }) {
           <QueryState
             loading={invitations.isLoading}
             error={invitations.error}
+            retry={() => void invitations.refetch()}
             empty={
               !invitations.data?.invitations.length
                 ? "No pending invitations."

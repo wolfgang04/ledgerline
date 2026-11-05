@@ -34,6 +34,7 @@ import {
 import { RequestForm } from "./request-form";
 import { RequestDetailPanel } from "./request-detail";
 import type { RequestKind, CommitmentDepartment } from "./types";
+import { useBudgetLocation } from "../use-budget-location";
 
 export function SpendingDashboard({
   organizationId,
@@ -45,12 +46,14 @@ export function SpendingDashboard({
   onNotice: Notify;
 }) {
   const budgets = useCommitmentBudgets(organizationId);
-  const [selection, setSelection] = useState<number | null>(null);
+  const location = useBudgetLocation();
+  const leave = useLeaveConfirmation();
   const selected =
-    budgets.data?.budgets.find((budget) => budget.id === selection) ??
+    budgets.data?.budgets.find(
+      (budget) => String(budget.fiscal_year) === location.params.get("year"),
+    ) ??
     budgets.data?.budgets.find((budget) => budget.status === "active") ??
     budgets.data?.budgets[0];
-  const leave = useLeaveConfirmation();
   return (
     <div className="space-y-6">
       <PageHeading
@@ -66,6 +69,7 @@ export function SpendingDashboard({
       <QueryState
         loading={budgets.isLoading}
         error={budgets.error}
+        retry={() => void budgets.refetch()}
         empty={
           budgets.data && !selected
             ? "No department budget is available yet. Finance must activate an annual allocation before spending can be requested."
@@ -86,7 +90,15 @@ export function SpendingDashboard({
                 )}
                 onValueChange={(value) =>
                   value !== null &&
-                  leave.request(() => setSelection(Number(value)))
+                  leave.request(() =>
+                    location.update({
+                      year:
+                        budgets.data?.budgets.find(
+                          (budget) => budget.id === Number(value),
+                        )?.fiscal_year ?? null,
+                      request: null,
+                    }),
+                  )
                 }
               >
                 <SelectTrigger id="commitment-year" className="w-full">
@@ -169,15 +181,20 @@ function BudgetSpending({
     "funding",
     role !== "employee",
   );
-  const [kind, setKind] = useState<RequestKind>("spending");
+  const location = useBudgetLocation();
+  const leave = useLeaveConfirmation();
+  const kind: RequestKind =
+    role !== "employee" && location.params.get("kind") === "funding"
+      ? "funding"
+      : "spending";
   const [filter, setFilter] = useState(role === "finance" ? "queue" : "all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [form, setForm] = useState<RequestKind | "allocation" | null>(null);
-  const [detail, setDetail] = useState<{
-    kind: RequestKind;
-    id: number;
-  } | null>(null);
-  const leave = useLeaveConfirmation();
+  const requestId = Number(location.params.get("request"));
+  const detail =
+    Number.isSafeInteger(requestId) && requestId > 0
+      ? { kind, id: requestId }
+      : null;
   const data = overview.data;
   const currency = data?.budget.currency ?? "";
   const active = data?.budget.status === "active";
@@ -195,7 +212,11 @@ function BudgetSpending({
   const money = (amount: string) =>
     `${formatFinancialAmount(amount)} ${currency}`;
   return (
-    <QueryState loading={overview.isLoading} error={overview.error}>
+    <QueryState
+      loading={overview.isLoading}
+      error={overview.error}
+      retry={() => void overview.refetch()}
+    >
       {data && (
         <div className="space-y-6">
           {form ? (
@@ -214,6 +235,7 @@ function BudgetSpending({
             />
           ) : detail ? (
             <RequestDetailPanel
+              key={`${detail.kind}-${detail.id}`}
               organizationId={organizationId}
               budgetId={budgetId}
               kind={detail.kind}
@@ -221,7 +243,9 @@ function BudgetSpending({
               currency={currency}
               active={active}
               onNotice={onNotice}
-              onClose={() => leave.request(() => setDetail(null))}
+              onClose={() =>
+                leave.request(() => location.update({ request: null }))
+              }
             />
           ) : (
             <>
@@ -370,7 +394,10 @@ function BudgetSpending({
                   <Tabs
                     value={kind}
                     onValueChange={(value) =>
-                      setKind(value === "funding" ? "funding" : "spending")
+                      location.update({
+                        kind: value === "funding" ? "funding" : "spending",
+                        request: null,
+                      })
                     }
                   >
                     <TabsList className="group-data-horizontal/tabs:h-auto w-full flex-col items-stretch sm:w-fit sm:flex-row">
@@ -463,17 +490,18 @@ function BudgetSpending({
                 <QueryState
                   loading={requests.isLoading}
                   error={requests.error}
+                  retry={() => void requests.refetch()}
                   empty={
                     !filtered.length && requests.data
                       ? "No requests match this view."
                       : undefined
                   }
                 >
-                  <ul className="divide-y rounded-xl border bg-card px-4 sm:px-5">
+                  <ul className="divide-y rounded-lg border bg-card px-4 sm:px-5">
                     {filtered.map((request) => (
                       <li
                         key={request.id}
-                        className="flex flex-wrap items-center justify-between gap-4 py-5"
+                        className="flex flex-wrap items-center justify-between gap-4 py-4"
                       >
                         <div className="min-w-0 flex-1 basis-48 space-y-2">
                           <h3 className="break-words font-medium">
@@ -499,7 +527,19 @@ function BudgetSpending({
                             <span className="font-medium tabular-nums">
                               {money(request.amount)}
                             </span>
-                            <Badge>{request.status}</Badge>
+                            <Badge
+                              variant={
+                                request.status === "approved"
+                                  ? "success"
+                                  : request.status === "pending"
+                                    ? "warning"
+                                    : request.status === "rejected"
+                                      ? "destructive"
+                                      : "default"
+                              }
+                            >
+                              {request.status}
+                            </Badge>
                           </div>
                           {request.status === "pending" && (
                             <p className="text-xs text-muted-foreground">
@@ -514,7 +554,9 @@ function BudgetSpending({
                         <Button
                           variant="outline"
                           aria-label={`View ${kind} request ${request.id}`}
-                          onClick={() => setDetail({ kind, id: request.id })}
+                          onClick={() =>
+                            location.update({ kind, request: request.id })
+                          }
                         >
                           View request
                         </Button>

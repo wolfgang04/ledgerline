@@ -1,6 +1,12 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { ArrowRight, LoaderCircle, Check } from "lucide-react";
+import {
+  ArrowRight,
+  LoaderCircle,
+  CheckCheck,
+  Layers3,
+  Wallet,
+} from "lucide-react";
 import { Brand } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,35 +54,43 @@ export function LoginPage({ onNotice }: { onNotice: Notify }) {
       );
   }
   return (
-    <main className="min-h-svh lg:grid lg:grid-cols-[minmax(22rem,0.85fr)_minmax(0,1.15fr)]">
-      <section className="flex flex-col bg-sidebar p-6 text-sidebar-foreground sm:p-10 lg:min-h-svh lg:p-12 xl:p-16">
+    <main className="min-h-svh bg-card lg:grid lg:grid-cols-2">
+      <section className="flex flex-col bg-sidebar p-6 text-sidebar-foreground sm:p-10 lg:order-2 lg:min-h-svh lg:p-12 xl:p-16">
         <Brand inverse />
-        <div className="my-auto hidden max-w-md py-16 lg:block">
-          <h1 className="text-4xl font-semibold leading-tight tracking-tight">
-            A clear path from proposal to approved budget.
+        <div className="my-auto hidden max-w-lg py-16 lg:block">
+          <h1 className="text-[2.75rem] font-semibold leading-[1.15] tracking-tight">
+            Every allocation.
+            <br />
+            Every decision.
+            <br />
+            <span className="text-sidebar-primary">In clear view.</span>
           </h1>
           <p className="mt-5 text-base leading-relaxed text-sidebar-muted">
-            Plan the year together. Give every allocation a purpose and every
-            approval a record.
+            Bring annual plans and spending authorizations into one shared
+            financial workspace.
           </p>
-          <ol className="mt-10 divide-y divide-sidebar-border">
-            {[
+          <ul className="mt-10 divide-y divide-sidebar-border">
+            {(
               [
-                "Finance submits",
-                "A clear starting point for the financial year.",
-              ],
-              [
-                "Departments plan",
-                "Managers break down spending and approve their allocation.",
-              ],
-              [
-                "Managers review",
-                "Overall approval brings the proposal together.",
-              ],
-              ["Finance commits", "Approved budgets become active."],
-            ].map(([title, description]) => (
-              <li key={title} className="flex gap-4 py-5">
-                <Check
+                [
+                  "Plan with purpose",
+                  "Set annual allocations and department spending plans.",
+                  Layers3,
+                ],
+                [
+                  "Authorize with confidence",
+                  "Review requests against available department funds.",
+                  Wallet,
+                ],
+                [
+                  "Keep the decision record",
+                  "Trace approvals, allocations, and changes to their source.",
+                  CheckCheck,
+                ],
+              ] as const
+            ).map(([title, description, Icon]) => (
+              <li key={String(title)} className="flex gap-4 py-5">
+                <Icon
                   className="mt-0.5 size-4 shrink-0 text-sidebar-primary"
                   aria-hidden="true"
                 />
@@ -88,16 +102,16 @@ export function LoginPage({ onNotice }: { onNotice: Notify }) {
                 </div>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
         <p className="hidden text-xs text-sidebar-muted lg:block">
-          Financial operations, with a shared record.
+          Ledgerline · Financial operations
         </p>
       </section>
-      <section className="flex items-center justify-center px-6 py-12 sm:px-12 lg:bg-card lg:py-16">
+      <section className="flex items-center justify-center px-6 py-12 sm:px-12 lg:order-1 lg:py-16">
         <div className="w-full max-w-[25rem]">
           <div className="mb-8">
-            <h2 className="text-3xl font-semibold tracking-tight">
+            <h2 className="text-[1.75rem] font-semibold tracking-tight">
               {mode === "login" ? "Welcome back" : "Create your account"}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

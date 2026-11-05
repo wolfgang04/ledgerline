@@ -156,7 +156,7 @@ export function ProposalDialogs({
         }}
       >
         <DialogContent>
-          <DialogTitle>Commit approved budget?</DialogTitle>
+          <DialogTitle>Activate approved budget?</DialogTitle>
           <DialogDescription>
             This activates department budgets from submitted version{" "}
             {shown?.plan.revision_number}, preserving its annual total and
@@ -189,7 +189,7 @@ export function ProposalDialogs({
               );
             }}
           >
-            Confirm budget commitment
+            Confirm budget activation
           </Button>
         </DialogContent>
       </Dialog>

@@ -10,7 +10,7 @@ export function PageHeading({
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0 max-w-2xl">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
           {title}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

@@ -39,7 +39,7 @@ export function DialogContent({
       <Primitive.Backdrop className="fixed inset-0 z-50 bg-sidebar/35 transition-opacity duration-150 data-starting-style:opacity-0 data-ending-style:opacity-0" />
       <Primitive.Popup
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 grid max-h-[85svh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg bg-card p-4 sm:p-6 text-foreground shadow-lg outline-none transition-[opacity,transform] duration-150 ease-out data-starting-style:opacity-0 data-ending-style:opacity-0",
+          "fixed left-1/2 top-1/2 z-50 grid max-h-[85svh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl bg-card p-4 sm:p-6 text-foreground shadow-lg outline-none transition-[opacity,transform] duration-150 ease-out data-starting-style:opacity-0 data-ending-style:opacity-0",
           className,
         )}
         {...props}

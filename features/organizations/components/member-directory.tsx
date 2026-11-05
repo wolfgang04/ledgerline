@@ -73,16 +73,16 @@ export function MemberDirectory({
             Department and team details could not be loaded.
           </Alert>
         )}
-        <p className="text-xs text-muted-foreground sm:hidden">
-          Swipe across the table to view departments, teams, and roles.
-        </p>
         {!visible.length ? (
           <p className="py-6 text-sm text-muted-foreground">
             No members match this search.
           </p>
         ) : (
-          <Table>
-            <TableHeader>
+          <Table
+            aria-label="Organization member directory"
+            className="member-directory"
+          >
+            <TableHeader className="hidden md:table-header-group">
               <TableRow>
                 <TableHead>Member</TableHead>
                 <TableHead>Department</TableHead>
@@ -110,28 +110,28 @@ export function MemberDirectory({
                           {member.first_name.slice(0, 1)}
                           {member.last_name.slice(0, 1)}
                         </span>
-                        <div>
-                          <p className="font-medium">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium">
                             {member.first_name} {member.last_name}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="break-all text-xs text-muted-foreground">
                             {member.email}
                           </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Department">
                       {departments
                         ? (department?.name ?? "Unassigned")
                         : "Unavailable"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Teams">
                       {departments
                         ? teams?.map((team) => team.name).join(", ") ||
                           "Unassigned"
                         : "Unavailable"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Role & access">
                       {canManage ? (
                         <RoleSelect
                           value={member.role}

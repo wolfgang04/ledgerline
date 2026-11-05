@@ -134,12 +134,32 @@ export function matchesCurrency(currency: string, query: string) {
     .includes(query.trim().toLowerCase());
 }
 
+function minor(value: string) {
+  if (!/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/.test(value)) return null;
+  const [whole, fraction = ""] = value.split(".");
+  return BigInt(whole) * BigInt(100) + BigInt(fraction.padEnd(2, "0"));
+}
+function formatMinor(value: bigint) {
+  const absolute = value < BigInt(0) ? -value : value;
+  return `${value < BigInt(0) ? "-" : ""}${absolute / BigInt(100)}.${String(absolute % BigInt(100)).padStart(2, "0")}`;
+}
+
+export function sumFinancialAmounts(amounts: string[]) {
+  const parts = amounts.map(minor);
+  if (parts.some((value) => value === null)) return null;
+  return formatMinor(
+    parts.reduce<bigint>((sum, part) => sum + part!, BigInt(0)),
+  );
+}
+
+export function financialPercentage(amount: string, total: string) {
+  const part = minor(amount);
+  const whole = minor(total);
+  if (part === null || whole === null) return null;
+  return whole === BigInt(0) ? 0 : Number((part * BigInt(10000)) / whole) / 100;
+}
+
 export function allocationTotals(total: string, amounts: string[]) {
-  const minor = (value: string) => {
-    if (!/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/.test(value)) return null;
-    const [whole, fraction = ""] = value.split(".");
-    return BigInt(whole) * BigInt(100) + BigInt(fraction.padEnd(2, "0"));
-  };
   const whole = minor(total);
   const parts = amounts.map(minor);
   if (whole === null || parts.some((value) => value === null)) return null;
@@ -148,13 +168,9 @@ export function allocationTotals(total: string, amounts: string[]) {
     BigInt(0),
   );
   const remaining = whole - allocated;
-  const format = (value: bigint) => {
-    const absolute = value < BigInt(0) ? -value : value;
-    return `${value < BigInt(0) ? "-" : ""}${absolute / BigInt(100)}.${String(absolute % BigInt(100)).padStart(2, "0")}`;
-  };
   return {
-    allocated: format(allocated),
-    reserve: format(remaining),
+    allocated: formatMinor(allocated),
+    reserve: formatMinor(remaining),
     overallocated: remaining < BigInt(0),
     percentages: parts.map((part) =>
       whole > BigInt(0)
